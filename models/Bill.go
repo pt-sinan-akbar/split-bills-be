@@ -16,5 +16,5 @@ type Bill struct {
 	RawImage    string         `gorm:"type:varchar(50)"`
 	CreatedAt   time.Time      `gorm:"type:timestamp"`
 	UpdatedAt   time.Time      `gorm:"type:timestamp"`
-	DeletedAt   gorm.DeletedAt `gorm:"type:timestamp" swaggerignore:"true"`
+	DeletedAt   gorm.DeletedAt `gorm:"type:timestamp"`
 }

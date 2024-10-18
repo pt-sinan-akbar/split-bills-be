@@ -65,7 +65,11 @@ func main() {
 	router := server.Group("/api/v1")
 
 	BillRouterController.BillRouter(router)
-
+	server.GET("/test", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Hello World",
+		})
+	})
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	log.Fatal(server.Run(":" + config.ServerPort))
