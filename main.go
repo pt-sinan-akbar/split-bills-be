@@ -1,13 +1,15 @@
 package main
 
 import (
-	"log"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/pt-sinan-akbar/initializers"
 	"github.com/pt-sinan-akbar/controllers"
 	_ "github.com/pt-sinan-akbar/docs"
+	"github.com/pt-sinan-akbar/initializers"
+	"github.com/pt-sinan-akbar/routes"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
+	"log"
 )
 
 // @title Split Bill API
@@ -30,30 +32,41 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 
+var (
+	server               *gin.Engine
+	BillController       controllers.BillController
+	BillRouterController routes.BillRouterController
+)
 
-func init(){
-	config, err := initializers.LoadConfig(".")	
+func init() {
+	config, err := initializers.LoadConfig(".")
 	if err != nil {
-        log.Fatal("? Could not load environment variables")
-    }
-
-    initializers.ConnectDB(&config)
-}
-
-
-func main() {
-    r := gin.Default()
-
-	v1 := r.Group("/api/v1")
-	{
-		bills := v1.Group("/bills")
-		{
-			bills.GET("", controllers.GetAll)
-			bills.GET(":id", controllers.GetByID)
-		}
+		log.Fatal("? Could not load environment variables")
 	}
 
-    r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	initializers.ConnectDB(&config)
+	BillController = controllers.NewBillController(initializers.DB)
+	BillRouterController = routes.NewBillRouterController(BillController)
+	server = gin.Default()
+}
 
-    r.Run(":8080")
+func main() {
+	config, err := initializers.LoadConfig(".")
+	if err != nil {
+		log.Fatal("? Could not load environment variables", err)
+	}
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
+
+	server.Use(cors.New(corsConfig))
+	router := server.Group("/api/v1")
+
+	BillRouterController.BillRouter(router)
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	log.Fatal(server.Run(":" + config.ServerPort))
 }
