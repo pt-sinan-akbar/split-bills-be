@@ -1,4 +1,83 @@
 basePath: /api/v1
+definitions:
+  controllers.errResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.Bill:
+    properties:
+      billData:
+        description: has many BillData
+        items:
+          $ref: '#/definitions/models.BillData'
+        type: array
+      billOwner:
+        $ref: '#/definitions/models.BillOwner'
+      billOwnerId:
+        description: belongs to a BillOwner
+        type: integer
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      rawImage:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.BillData:
+    properties:
+      bill:
+        $ref: '#/definitions/models.Bill'
+      billId:
+        description: belongs to a Bill
+        type: string
+      createdAt:
+        type: string
+      discount:
+        type: number
+      id:
+        type: integer
+      misc:
+        type: string
+      service:
+        type: number
+      storeName:
+        type: string
+      subTotal:
+        type: number
+      tax:
+        type: number
+      total:
+        type: number
+      updatedAt:
+        type: string
+    type: object
+  models.BillOwner:
+    properties:
+      bankAccount:
+        type: string
+      bill:
+        description: has many Bill
+        items:
+          $ref: '#/definitions/models.Bill'
+        type: array
+      contact:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -15,7 +94,53 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Split Bill API
   version: "1.0"
-paths: {}
+paths:
+  /bills:
+    get:
+      description: Get all Bills from table
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Bill'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.errResponse'
+      summary: Get all bills
+      tags:
+      - bills
+  /bills/{id}:
+    get:
+      description: Get bill by ID
+      parameters:
+      - description: Bill ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Bill'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controllers.errResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controllers.errResponse'
+      summary: Get a bill by ID
+      tags:
+      - bills
 securityDefinitions:
   BasicAuth:
     type: basic

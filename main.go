@@ -66,7 +66,7 @@ func main() {
 
 	BillRouterController.BillRouter(router)
 
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	log.Fatal(server.Run(":" + config.ServerPort))
 }

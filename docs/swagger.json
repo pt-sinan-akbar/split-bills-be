@@ -17,7 +17,197 @@
     },
     "host": "localhost:8080",
     "basePath": "/api/v1",
-    "paths": {},
+    "paths": {
+        "/bills": {
+            "get": {
+                "description": "Get all Bills from table",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "Get all bills",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Bill"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.errResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/bills/{id}": {
+            "get": {
+                "description": "Get bill by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "Get a bill by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bill ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Bill"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.errResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.errResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "controllers.errResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Bill": {
+            "type": "object",
+            "properties": {
+                "billData": {
+                    "description": "has many BillData",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.BillData"
+                    }
+                },
+                "billOwner": {
+                    "$ref": "#/definitions/models.BillOwner"
+                },
+                "billOwnerId": {
+                    "description": "belongs to a BillOwner",
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rawImage": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BillData": {
+            "type": "object",
+            "properties": {
+                "bill": {
+                    "$ref": "#/definitions/models.Bill"
+                },
+                "billId": {
+                    "description": "belongs to a Bill",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "discount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "misc": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "number"
+                },
+                "storeName": {
+                    "type": "string"
+                },
+                "subTotal": {
+                    "type": "number"
+                },
+                "tax": {
+                    "type": "number"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BillOwner": {
+            "type": "object",
+            "properties": {
+                "bankAccount": {
+                    "type": "string"
+                },
+                "bill": {
+                    "description": "has many Bill",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Bill"
+                    }
+                },
+                "contact": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
     "securityDefinitions": {
         "BasicAuth": {
             "type": "basic"

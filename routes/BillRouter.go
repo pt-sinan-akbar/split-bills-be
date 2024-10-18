@@ -16,7 +16,7 @@ func NewBillRouterController(bc controllers.BillController) BillRouterController
 func (brc *BillRouterController) BillRouter(rg *gin.RouterGroup) {
 	rg.GET("/bills", brc.billController.GetAll)
 	rg.GET("/bills/:id", brc.billController.GetByID)
-	rg.POST("/bills", brc.billController.CreateBill)
-	rg.PUT("/bills/:id", brc.billController.UpdateBill)
-	rg.DELETE("/bills/:id", brc.billController.DeleteBill)
+	// rg.POST("/bills", brc.billController.CreateBill)
+	// rg.PUT("/bills/:id", brc.billController.UpdateBill)
+	// rg.DELETE("/bills/:id", brc.billController.DeleteBill)
 }

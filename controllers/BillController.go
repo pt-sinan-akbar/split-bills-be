@@ -11,6 +11,10 @@ type BillController struct {
 	DB *gorm.DB
 }
 
+type errResponse struct {
+	Message string `json:"message"`
+}
+
 func NewBillController(DB *gorm.DB) BillController {
 	return BillController{DB}
 }
@@ -21,15 +25,14 @@ func NewBillController(DB *gorm.DB) BillController {
 // @Tags bills
 // @Produce  json
 // @Success 200 {array} models.Bill
-// @Failure 500 {object} gin.H
+// @Failure 500 {object} errResponse
 // @Router /bills [get]
-
 func (bc BillController) GetAll(c *gin.Context) {
 	var bills []models.Bill
 	result := bc.DB.Preload("BillData").Preload("BillOwner").Find(&bills)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		c.JSON(http.StatusInternalServerError, errResponse{Message: result.Error.Error()})
 		return
 	}
 
@@ -43,64 +46,64 @@ func (bc BillController) GetAll(c *gin.Context) {
 // @Produce  json
 // @Param id path string true "Bill ID"
 // @Success 200 {object} models.Bill
-// @Failure 404 {object} gin.H
-// @Failure 500 {object} gin.H
+// @Failure 404 {object} errResponse
+// @Failure 500 {object} errResponse
 // @Router /bills/{id} [get]
 func (bc BillController) GetByID(c *gin.Context) {
 	id := c.Param("id")
 	var bill models.Bill
-	result := bc.DB.Preload("BillData").Preload("BillOwner").First(&bill, id)
+	result := bc.DB.Preload("BillData").Preload("BillOwner").Where("id = ?", id).First(&bill)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		c.JSON(http.StatusInternalServerError, errResponse{Message: result.Error.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, bill)
 }
 
-func (bc BillController) CreateBill(c *gin.Context) {
-	var bill models.Bill
-	if err := c.ShouldBindJSON(&bill); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+// func (bc BillController) CreateBill(c *gin.Context) {
+// 	var bill models.Bill
+// 	if err := c.ShouldBindJSON(&bill); err != nil {
+// 		c.JSON(http.StatusBadRequest, errResponse{Message: err.Error()})
+// 		return
+// 	}
 
-	result := bc.DB.Create(&bill)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-		return
-	}
+// 	result := bc.DB.Create(&bill)
+// 	if result.Error != nil {
+// 		c.JSON(http.StatusInternalServerError, errResponse{Message: result.Error.Error()})
+// 		return
+// 	}
 
-	c.JSON(http.StatusCreated, bill)
-}
+// 	c.JSON(http.StatusCreated, bill)
+// }
 
-func (bc BillController) DeleteBill(c *gin.Context) {
-	id := c.Param("id")
-	result := bc.DB.Delete(&models.Bill{}, id)
+// func (bc BillController) DeleteBill(c *gin.Context) {
+// 	id := c.Param("id")
+// 	result := bc.DB.Delete(&models.Bill{}, id)
 
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-		return
-	}
+// 	if result.Error != nil {
+// 		c.JSON(http.StatusInternalServerError, errResponse{Message: result.Error.Error()})
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Bill deleted successfully"})
-}
+// 	c.JSON(http.StatusOK, errResponse{Message: "Bill deleted successfully"})
+// }
 
-func (bc BillController) UpdateBill(c *gin.Context) {
-	id := c.Param("id")
-	var bill models.Bill
-	if err := c.ShouldBindJSON(&bill); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+// func (bc BillController) UpdateBill(c *gin.Context) {
+// 	id := c.Param("id")
+// 	var bill models.Bill
+// 	if err := c.ShouldBindJSON(&bill); err != nil {
+// 		c.JSON(http.StatusBadRequest, errResponse{Message: err.Error()})
+// 		return
+// 	}
 
-	result := bc.DB.Model(&bill).Where("id = ?", id).Updates(&bill)
+// 	result := bc.DB.Model(&bill).Where("id = ?", id).Updates(&bill)
 
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-		return
-	}
+// 	if result.Error != nil {
+// 		c.JSON(http.StatusInternalServerError, errResponse{Message: result.Error.Error()})
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, bill)
-}
+// 	c.JSON(http.StatusOK, bill)
+// }
