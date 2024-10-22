@@ -119,19 +119,39 @@ func (bc BillController) DeleteBill(c *gin.Context) {
 // @Failure 500 {object} helpers.ErrResponse
 // @Router /bills/{id} [put]
 func (bc BillController) UpdateBill(c *gin.Context) {
-	id := c.Param("id")
-	var bill models.Bill
-	if err := c.ShouldBindJSON(&bill); err != nil {
-		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
-		return
-	}
+    id := c.Param("id")
+    var bill models.Bill
 
-	result := bc.DB.Model(&bill).Where("id = ?", id).Updates(&bill)
+    if err := bc.DB.Preload("BillData").Where("bill_id = ?", id).First(&bill).Error; err != nil {
+        c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: "Bill not found or doesn't exist"})
+        return
+    }
 
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
-		return
-	}
+    if err := c.ShouldBindJSON(&bill); err != nil {
+        c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+        return
+    }
 
-	c.JSON(http.StatusOK, bill)
+    tx := bc.DB.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    if err := tx.Model(&bill).Association("BillData").Replace(bill.BillData); err != nil {
+        tx.Rollback()
+        c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+        return
+    }
+
+    if err := tx.Save(&bill).Error; err != nil {
+        tx.Rollback()
+        c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+        return
+    }
+
+    tx.Commit()
+    c.JSON(http.StatusOK, bill)
 }
+
