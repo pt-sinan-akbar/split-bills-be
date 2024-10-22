@@ -122,8 +122,8 @@ func (bc BillController) UpdateBill(c *gin.Context) {
     id := c.Param("id")
     var bill models.Bill
 
-    if err := bc.DB.Preload("BillData").Where("bill_id = ?", id).First(&bill).Error; err != nil {
-        c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: "Bill not found or doesn't exist"})
+    if err := bc.DB.Preload("BillData").Where("id = ?", id).First(&bill).Error; err != nil {
+        c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: err.Error()})
         return
     }
 
@@ -139,19 +139,24 @@ func (bc BillController) UpdateBill(c *gin.Context) {
         }
     }()
 
-    if err := tx.Model(&bill).Association("BillData").Replace(bill.BillData); err != nil {
+    if err := tx.Model(&bill).Updates(bill).Error; err != nil {
         tx.Rollback()
         c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
         return
     }
 
-    if err := tx.Save(&bill).Error; err != nil {
-        tx.Rollback()
-        c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
-        return
+    // Update each associated BillData item.
+    for _, data := range bill.BillData {
+        if err := tx.Model(&data).Where("id = ?", data.ID).Updates(data).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+            return
+        }
     }
 
+    // Commit the transaction.
     tx.Commit()
     c.JSON(http.StatusOK, bill)
 }
+
 
