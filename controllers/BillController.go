@@ -145,7 +145,6 @@ func (bc BillController) UpdateBill(c *gin.Context) {
         return
     }
 
-    // Update each associated BillData item.
     for _, data := range bill.BillData {
         if err := tx.Model(&data).Where("id = ?", data.ID).Updates(data).Error; err != nil {
             tx.Rollback()
@@ -154,7 +153,6 @@ func (bc BillController) UpdateBill(c *gin.Context) {
         }
     }
 
-    // Commit the transaction.
     tx.Commit()
     c.JSON(http.StatusOK, bill)
 }
