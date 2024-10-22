@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/pt-sinan-akbar/helpers"
 	"github.com/pt-sinan-akbar/models"
 	"gorm.io/gorm"
 	"net/http"
@@ -9,10 +11,6 @@ import (
 
 type BillController struct {
 	DB *gorm.DB
-}
-
-type errResponse struct {
-	Message string `json:"message"`
 }
 
 func NewBillController(DB *gorm.DB) BillController {
@@ -25,14 +23,14 @@ func NewBillController(DB *gorm.DB) BillController {
 // @Tags bills
 // @Produce  json
 // @Success 200 {array} models.Bill
-// @Failure 500 {object} errResponse
+// @Failure 500 {object} helpers.ErrResponse
 // @Router /bills [get]
 func (bc BillController) GetAll(c *gin.Context) {
 	var bills []models.Bill
 	result := bc.DB.Preload("BillData").Preload("BillOwner").Find(&bills)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, errResponse{Message: result.Error.Error()})
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
 	}
 
@@ -46,8 +44,8 @@ func (bc BillController) GetAll(c *gin.Context) {
 // @Produce  json
 // @Param id path string true "Bill ID"
 // @Success 200 {object} models.Bill
-// @Failure 404 {object} errResponse
-// @Failure 500 {object} errResponse
+// @Failure 404 {object} helpers.ErrResponse
+// @Failure 500 {object} helpers.ErrResponse
 // @Router /bills/{id} [get]
 func (bc BillController) GetByID(c *gin.Context) {
 	id := c.Param("id")
@@ -55,55 +53,85 @@ func (bc BillController) GetByID(c *gin.Context) {
 	result := bc.DB.Preload("BillData").Preload("BillOwner").Where("id = ?", id).First(&bill)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, errResponse{Message: result.Error.Error()})
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, bill)
 }
 
-// func (bc BillController) CreateBill(c *gin.Context) {
-// 	var bill models.Bill
-// 	if err := c.ShouldBindJSON(&bill); err != nil {
-// 		c.JSON(http.StatusBadRequest, errResponse{Message: err.Error()})
-// 		return
-// 	}
+// CreateBill godoc
+// @Summary Get a bill by ID
+// @Description Get bill by ID
+// @Tags bills
+// @Produce  json
+// @Param id path string true "Bill ID"
+// @Success 200 {object} models.Bill
+// @Failure 404 {object} helpers.ErrResponse
+// @Failure 500 {object} helpers.ErrResponse
+// @Router /bills/{id} [get]
+func (bc BillController) CreateBill(c *gin.Context) {
+	var bill models.Bill
+	if err := c.ShouldBindJSON(&bill); err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
 
-// 	result := bc.DB.Create(&bill)
-// 	if result.Error != nil {
-// 		c.JSON(http.StatusInternalServerError, errResponse{Message: result.Error.Error()})
-// 		return
-// 	}
+	result := bc.DB.Create(&bill)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
+		return
+	}
 
-// 	c.JSON(http.StatusCreated, bill)
-// }
+	c.JSON(http.StatusCreated, bill)
+}
 
-// func (bc BillController) DeleteBill(c *gin.Context) {
-// 	id := c.Param("id")
-// 	result := bc.DB.Delete(&models.Bill{}, id)
+// DeleteBill godoc
+// @Summary Delete a bill by ID
+// @Description Delete bill by ID
+// @Tags bills
+// @Produce  json
+// @Param id path string true "Bill ID"
+// @Success 200 {object} helpers.ErrResponse
+// @Failure 500 {object} helpers.ErrResponse
+// @Router /bills/{id} [delete]
+func (bc BillController) DeleteBill(c *gin.Context) {
+	id := c.Param("id")
+	fmt.Println("id", id)
+	result := bc.DB.Where("id = ?", id).Delete(&models.Bill{})
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
+		return
+	}
 
-// 	if result.Error != nil {
-// 		c.JSON(http.StatusInternalServerError, errResponse{Message: result.Error.Error()})
-// 		return
-// 	}
+	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Bill deleted successfully"})
+}
 
-// 	c.JSON(http.StatusOK, errResponse{Message: "Bill deleted successfully"})
-// }
+// UpdateBill godoc
+// @Summary Update a bill by ID
+// @Description Update bill by ID
+// @Tags bills
+// @Produce  json
+// @Param id path string true "Bill ID"
+// @Param bill body models.Bill true "Bill Data"
+// @Success 200 {object} models.Bill
+// @Failure 400 {object} helpers.ErrResponse
+// @Failure 500 {object} helpers.ErrResponse
+// @Router /bills/{id} [put]
+func (bc BillController) UpdateBill(c *gin.Context) {
+	id := c.Param("id")
+	var bill models.Bill
+	if err := c.ShouldBindJSON(&bill); err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
 
-// func (bc BillController) UpdateBill(c *gin.Context) {
-// 	id := c.Param("id")
-// 	var bill models.Bill
-// 	if err := c.ShouldBindJSON(&bill); err != nil {
-// 		c.JSON(http.StatusBadRequest, errResponse{Message: err.Error()})
-// 		return
-// 	}
+	result := bc.DB.Model(&bill).Where("id = ?", id).Updates(&bill)
 
-// 	result := bc.DB.Model(&bill).Where("id = ?", id).Updates(&bill)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
+		return
+	}
 
-// 	if result.Error != nil {
-// 		c.JSON(http.StatusInternalServerError, errResponse{Message: result.Error.Error()})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, bill)
-// }
+	c.JSON(http.StatusOK, bill)
+}

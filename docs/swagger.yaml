@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  controllers.errResponse:
+  helpers.ErrResponse:
     properties:
       message:
         type: string
@@ -18,6 +18,8 @@ definitions:
         description: belongs to a BillOwner
         type: integer
       createdAt:
+        type: string
+      deletedAt:
         type: string
       id:
         type: string
@@ -110,11 +112,33 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controllers.errResponse'
+            $ref: '#/definitions/helpers.ErrResponse'
       summary: Get all bills
       tags:
       - bills
   /bills/{id}:
+    delete:
+      description: Delete bill by ID
+      parameters:
+      - description: Bill ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Delete a bill by ID
+      tags:
+      - bills
     get:
       description: Get bill by ID
       parameters:
@@ -133,12 +157,44 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/controllers.errResponse'
+            $ref: '#/definitions/helpers.ErrResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controllers.errResponse'
+            $ref: '#/definitions/helpers.ErrResponse'
       summary: Get a bill by ID
+      tags:
+      - bills
+    put:
+      description: Update bill by ID
+      parameters:
+      - description: Bill ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Bill Data
+        in: body
+        name: bill
+        required: true
+        schema:
+          $ref: '#/definitions/models.Bill'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Bill'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Update a bill by ID
       tags:
       - bills
 securityDefinitions:
