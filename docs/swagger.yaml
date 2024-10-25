@@ -60,11 +60,11 @@ paths:
               $ref: '#/definitions/models.BillOwner'
             type: array
         "404":
-          description: Not Found
+          description: Page not found
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
         "500":
-          description: Internal Server Error
+          description: 'Internal Server Error: Server failed to process the request'
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Get all Bill Owner
@@ -75,7 +75,7 @@ paths:
       - application/json
       description: Create new bill owner
       parameters:
-      - description: Bill Owner data
+      - description: data
         in: body
         name: data
         required: true
@@ -89,11 +89,11 @@ paths:
           schema:
             $ref: '#/definitions/models.BillOwner'
         "404":
-          description: Not Found
+          description: Page not found
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
         "500":
-          description: Internal Server Error
+          description: 'Internal Server Error: Server failed to process the request'
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Create new bill owner
@@ -103,7 +103,7 @@ paths:
     delete:
       description: Delete bill owner by ID
       parameters:
-      - description: Bill Owner ID
+      - description: data
         in: path
         name: id
         required: true
@@ -116,11 +116,11 @@ paths:
           schema:
             $ref: '#/definitions/models.BillOwner'
         "404":
-          description: Not Found
+          description: Page not found
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
         "500":
-          description: Internal Server Error
+          description: 'Internal Server Error: Server failed to process the request'
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Delete bill owner by ID
@@ -144,11 +144,11 @@ paths:
               $ref: '#/definitions/models.BillOwner'
             type: array
         "404":
-          description: Not Found
+          description: Page not found
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
         "500":
-          description: Internal Server Error
+          description: 'Internal Server Error: Server failed to process the request'
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Get a Bill Owner by ID
@@ -159,12 +159,12 @@ paths:
       - application/json
       description: Edit Bill Owner
       parameters:
-      - description: Bill Owner ID
+      - description: data
         in: path
         name: id
         required: true
         type: integer
-      - description: Edit Bill Owner Data
+      - description: data
         in: body
         name: data
         required: true
@@ -178,11 +178,11 @@ paths:
           schema:
             $ref: '#/definitions/models.BillOwner'
         "404":
-          description: Not Found
+          description: Page not found
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
         "500":
-          description: Internal Server Error
+          description: 'Internal Server Error: Server failed to process the request'
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Edit Bill Owner
@@ -200,8 +200,12 @@ paths:
             items:
               $ref: '#/definitions/models.Bill'
             type: array
+        "404":
+          description: Page not found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
         "500":
-          description: Internal Server Error
+          description: 'Internal Server Error: Server failed to process the request'
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Get all bills
@@ -212,9 +216,9 @@ paths:
       - application/json
       description: Create a new bill
       parameters:
-      - description: Bill Data
+      - description: data
         in: body
-        name: bill
+        name: data
         required: true
         schema:
           $ref: '#/definitions/models.Bill'
@@ -229,8 +233,12 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
+        "404":
+          description: Page not found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
         "500":
-          description: Internal Server Error
+          description: 'Internal Server Error: Server failed to process the request'
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Create a new bill
@@ -240,7 +248,7 @@ paths:
     delete:
       description: Delete bill by ID
       parameters:
-      - description: Bill ID
+      - description: data
         in: path
         name: id
         required: true
@@ -252,8 +260,12 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
+        "404":
+          description: Page not found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
         "500":
-          description: Internal Server Error
+          description: 'Internal Server Error: Server failed to process the request'
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Delete a bill by ID
@@ -262,7 +274,7 @@ paths:
     get:
       description: Get bill by ID
       parameters:
-      - description: Bill ID
+      - description: data
         in: path
         name: id
         required: true
@@ -275,11 +287,11 @@ paths:
           schema:
             $ref: '#/definitions/models.Bill'
         "404":
-          description: Not Found
+          description: Page not found
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
         "500":
-          description: Internal Server Error
+          description: 'Internal Server Error: Server failed to process the request'
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Get a bill by ID
@@ -288,14 +300,14 @@ paths:
     put:
       description: Update bill by ID
       parameters:
-      - description: Bill ID
+      - description: data
         in: path
         name: id
         required: true
         type: string
-      - description: Bill Data
+      - description: data
         in: body
-        name: bill
+        name: data
         required: true
         schema:
           $ref: '#/definitions/models.Bill'
@@ -306,12 +318,12 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.Bill'
-        "400":
-          description: Bad Request
+        "404":
+          description: Page not found
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
         "500":
-          description: Internal Server Error
+          description: 'Internal Server Error: Server failed to process the request'
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Update a bill by ID

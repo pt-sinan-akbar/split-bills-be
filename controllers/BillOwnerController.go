@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pt-sinan-akbar/helpers"
@@ -24,12 +25,12 @@ func NewBillOwnerController(DB *gorm.DB) BillOwnerController {
 //	@Tags			billowners
 //	@Produce		json
 //	@Success		200	{array}		models.BillOwner
-//	@Failure		404	{object}	helpers.ErrResponse
-//	@Failure		500	{object}	helpers.ErrResponse
+//	@Failure		404	{object}	helpers.ErrResponse "Page not found"
+//	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //	@Router			/billowners [get]
 func (bc BillOwnerController) GetAll(c *gin.Context) {
     var billOwners []models.BillOwner
-    result := bc.DB.Find(&billOwners)
+    result := bc.DB.Where("deleted_at IS NULL").Find(&billOwners)
 
     if result.Error != nil {
         c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
@@ -46,16 +47,16 @@ func (bc BillOwnerController) GetAll(c *gin.Context) {
 //	@Produce		json
 //	@Param			id	path int true "data"
 //	@Success		200	{array}		models.BillOwner
-//	@Failure		404	{object}	helpers.ErrResponse
-//	@Failure		500	{object}	helpers.ErrResponse
+//	@Failure		404	{object}	helpers.ErrResponse "Page not found"
+//	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //	@Router			/billowners/{id} [get]
 func (bc BillOwnerController) GetByID(c *gin.Context) {
 	id := c.Param("id")
 	var billOwner models.BillOwner
-	result := bc.DB.Where("id = ?", id).First(&billOwner)
+	result := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&billOwner)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: "Error: " + result.Error.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, billOwner)
@@ -67,10 +68,10 @@ func (bc BillOwnerController) GetByID(c *gin.Context) {
 // @Tags billowners
 // @Accept json
 // @Produce json
-// @Param data body models.BillOwner true "Bill Owner data"
+// @Param data body models.BillOwner true "data"
 // @Success		200	{object}	models.BillOwner
-// @Failure		404	{object}	helpers.ErrResponse
-// @Failure		500	{object}	helpers.ErrResponse
+// @Failure		404	{object}	helpers.ErrResponse "Page not found"
+// @Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 // @Router /billowners [post]
 func (bc BillOwnerController) CreateAsync(c *gin.Context){
 	var billowner models.BillOwner
@@ -79,9 +80,10 @@ func (bc BillOwnerController) CreateAsync(c *gin.Context){
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
+	// now := time.Now()
 
 	result := bc.DB.Create(&billowner)
-
+	// result = bc.DB.Model(&billowner).Update("created_at", &now)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 	}
@@ -94,10 +96,10 @@ func (bc BillOwnerController) CreateAsync(c *gin.Context){
 // @Description Delete bill owner by ID
 // @Tags billowners
 // @Produce json
-// @Param id path int true "Bill Owner ID"
+// @Param id path int true "data"
 // @Success		200	{object}	models.BillOwner
-// @Failure		404	{object}	helpers.ErrResponse
-// @Failure		500	{object}	helpers.ErrResponse
+// @Failure		404	{object}	helpers.ErrResponse "Page not found"
+// @Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 // @Router /billowners/{id} [delete]
 func (bc BillOwnerController) DeleteAsync(c *gin.Context){
 	id := c.Param("id")
@@ -109,14 +111,16 @@ func (bc BillOwnerController) DeleteAsync(c *gin.Context){
 		return
 	}
 
-	result = bc.DB.Delete(&billowner)
+	now := time.Now()
+	result = bc.DB.Model(&billowner).Update("deleted_at", &now)
+	result = bc.DB.Model(&billowner).Update("updated_at", &now)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, billowner)
+	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Successfully deleted record"}) 
 }
 
 // Edit Bill Owner godoc
@@ -125,22 +129,23 @@ func (bc BillOwnerController) DeleteAsync(c *gin.Context){
 // @Tags billowners
 // @Accept json
 // @Produce json
-// @Param id path integer true "Bill Owner ID"
-// @Param data body models.BillOwner true "Edit Bill Owner Data"
+// @Param id path integer true "data"
+// @Param data body models.BillOwner true "data"
 // @Success		200	{object}	models.BillOwner
-// @Failure		404	{object}	helpers.ErrResponse
-// @Failure		500	{object}	helpers.ErrResponse
+// @Failure		404	{object}	helpers.ErrResponse "Page not found"
+// @Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 // @Router /billowners/{id} [put]
 func (bc BillOwnerController) EditAsync(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
+	now := time.Now()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
 	var findBillOwner models.BillOwner
-	if err := bc.DB.First(&findBillOwner, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: "Bill Owner not found: " + err.Error()})
+	if err := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&findBillOwner).Error; err != nil {
+		c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: "Error: " + err.Error()})
 		return
 	}
 
@@ -156,7 +161,15 @@ func (bc BillOwnerController) EditAsync(c *gin.Context) {
         return
     }
 
-    if err := tx.Model(&findBillOwner).Updates(&updateOwner).Error; err != nil {
+	updateData := map[string]interface{}{
+        "UserId":      updateOwner.UserId,
+        "Name":        updateOwner.Name,
+        "Contact":     updateOwner.Contact,
+        "BankAccount": updateOwner.BankAccount,
+        "UpdatedAt":   now,
+    }
+
+    if err := tx.Model(&findBillOwner).Updates(updateData).Error; err != nil {
         tx.Rollback() 
         c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: "Could not update bill owner: " + err.Error()})
         return

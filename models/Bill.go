@@ -15,5 +15,5 @@ type Bill struct {
 	RawImage    string     `gorm:"type:varchar(50)" json:"raw_image,omitempty"`
 	CreatedAt   time.Time  `gorm:"type:timestamp" json:"-"`
 	UpdatedAt   time.Time  `gorm:"type:timestamp" json:"-"`
-	DeletedAt   *time.Time `gorm:"type:timestamp" json:"-"`
+	DeletedAt   *time.Time `gorm:"type:timestamp" json:"-"`	
 }
