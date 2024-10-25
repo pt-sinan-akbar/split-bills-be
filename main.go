@@ -12,30 +12,36 @@ import (
 	"log"
 )
 
-// @title Split Bill API
-// @version 1.0
-// @description Split Bill Swagger Documentation
-// @termsOfService  http://swagger.io/terms/
+//	@title			Split Bill API
+//	@version		1.0
+//	@description	Split Bill Swagger Documentation
+//	@termsOfService	http://swagger.io/terms/
 
-// @contact.name   API Support
-// @contact.url    http://www.swagger.io/support
-// @contact.email  support@swagger.io
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
 
-// @license.name  Apache 2.0
-// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      localhost:8080
-// @BasePath  /api/v1
+//	@host		localhost:8080
+//	@BasePath	/api/v1
 
-// @securityDefinitions.basic  BasicAuth
+//	@securityDefinitions.basic	BasicAuth
 
-// @externalDocs.description  OpenAPI
-// @externalDocs.url          https://swagger.io/resources/open-api/
+//	@externalDocs.description	OpenAPI
+//	@externalDocs.url			https://swagger.io/resources/open-api/
 
 var (
 	server               *gin.Engine
+
+	//Controllers
 	BillController       controllers.BillController
+	BillOwnerController controllers.BillOwnerController
+
+	//Routes
 	BillRouterController routes.BillRouterController
+	BillOwnerRouterController routes.BillOwnerRouterController
 )
 
 func init() {
@@ -45,8 +51,14 @@ func init() {
 	}
 
 	initializers.ConnectDB(&config)
+	//Controllers
 	BillController = controllers.NewBillController(initializers.DB)
+	BillOwnerController = controllers.NewBillOwnerController(initializers.DB)
+
+	//Routes
 	BillRouterController = routes.NewBillRouterController(BillController)
+	BillOwnerRouterController = routes.NewBillOwnerRouterController(BillOwnerController)
+
 	server = gin.Default()
 }
 
@@ -65,6 +77,7 @@ func main() {
 	router := server.Group("/api/v1")
 
 	BillRouterController.BillRouter(router)
+	BillOwnerRouterController.BillOwnerRouter(router)
 	server.GET("/test", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello World",

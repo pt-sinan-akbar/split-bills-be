@@ -97,6 +97,147 @@ info:
   title: Split Bill API
   version: "1.0"
 paths:
+  /billowners:
+    get:
+      description: Get all Bill Owner
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.BillOwner'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Get all Bill Owner
+      tags:
+      - billowners
+    post:
+      consumes:
+      - application/json
+      description: Create new bill owner
+      parameters:
+      - description: Bill Owner data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.BillOwner'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BillOwner'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Create new bill owner
+      tags:
+      - billowners
+  /billowners/{id}:
+    delete:
+      description: Delete bill owner by ID
+      parameters:
+      - description: Bill Owner ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BillOwner'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Delete bill owner by ID
+      tags:
+      - billowners
+    get:
+      description: Get Bill Owner by ID
+      parameters:
+      - description: data
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.BillOwner'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Get a Bill Owner by ID
+      tags:
+      - billowners
+    put:
+      consumes:
+      - application/json
+      description: Edit Bill Owner
+      parameters:
+      - description: Bill Owner ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Edit Bill Owner Data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.BillOwner'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BillOwner'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Edit Bill Owner
+      tags:
+      - billowners
   /bills:
     get:
       description: Get all Bills from table
