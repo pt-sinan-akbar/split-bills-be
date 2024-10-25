@@ -18,6 +18,381 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/billdatas": {
+            "get": {
+                "description": "Get all Bill Data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billdatas"
+                ],
+                "summary": "Get all Bill Data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BillData"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create new Bill Data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billdatas"
+                ],
+                "summary": "Create new Bill Data",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BillData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BillData"
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/billdatas/{id}": {
+            "get": {
+                "description": "Get Bill Data by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billdatas"
+                ],
+                "summary": "Get a Bill Data by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BillData"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Edit Bill Data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billdatas"
+                ],
+                "summary": "Edit Bill Data",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BillData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BillData"
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete Bill Data by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billdatas"
+                ],
+                "summary": "Delete a Bill Data by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/billitems": {
+            "get": {
+                "description": "Get all Bill Item",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billitems"
+                ],
+                "summary": "Get all Bill Item",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BillItem"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create new Bill Item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billitems"
+                ],
+                "summary": "Create new Bill Item",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BillItem"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BillItem"
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/billitems/{id}": {
+            "get": {
+                "description": "Get Bill Item by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billitems"
+                ],
+                "summary": "Get a Bill Item by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BillItem"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a Bill Item",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billitems"
+                ],
+                "summary": "Delete a Bill Item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/billmembers": {
             "get": {
                 "description": "Get all Bill Members",
@@ -673,9 +1048,26 @@
         "models.Bill": {
             "type": "object",
             "properties": {
-                "bill_owner_id": {
+                "billData": {
+                    "description": "has many BillData",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.BillData"
+                    }
+                },
+                "billOwner": {
                     "description": "belongs to a BillOwner",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.BillOwner"
+                        }
+                    ]
+                },
+                "bill_owner_id": {
                     "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"
@@ -685,14 +1077,105 @@
                 },
                 "raw_image": {
                     "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BillData": {
+            "type": "object",
+            "properties": {
+                "bill": {
+                    "$ref": "#/definitions/models.Bill"
+                },
+                "bill_id": {
+                    "description": "belongs to a Bill",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "discount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "misc": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "number"
+                },
+                "store_name": {
+                    "type": "string"
+                },
+                "sub_total": {
+                    "type": "number"
+                },
+                "tax": {
+                    "type": "number"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BillItem": {
+            "type": "object",
+            "properties": {
+                "bill": {
+                    "$ref": "#/definitions/models.Bill"
+                },
+                "billMember": {
+                    "description": "many to many",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.BillMember"
+                    }
+                },
+                "bill_id": {
+                    "description": "belongs to a Bill",
+                    "type": "string"
+                },
+                "discount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "qty": {
+                    "type": "integer"
+                },
+                "service": {
+                    "type": "number"
+                },
+                "tax": {
+                    "type": "number"
                 }
             }
         },
         "models.BillMember": {
             "type": "object",
             "properties": {
+                "bill": {
+                    "$ref": "#/definitions/models.Bill"
+                },
                 "bill_id": {
                     "description": "belongs to a Bill",
+                    "type": "string"
+                },
+                "created_at": {
                     "type": "string"
                 },
                 "id": {
@@ -703,6 +1186,9 @@
                 },
                 "price_owe": {
                     "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -715,10 +1201,16 @@
                 "contact": {
                     "type": "string"
                 },
+                "created_at": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 },
                 "user_id": {

@@ -30,15 +30,15 @@ func NewBillMemberController(DB *gorm.DB) BillMemberController {
 //	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //	@Router			/billmembers [get]
 func (bc BillMemberController) GetAll(c *gin.Context) {
-	var billMembers []models.BillMember
-	result := bc.DB.Where("deleted_at IS NULL").Find(&billMembers)
+	var obj []models.BillMember
+	result := bc.DB.Where("deleted_at IS NULL").Preload("Bill").Find(&obj)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, billMembers)
+	c.JSON(http.StatusOK, obj)
 }
 
 // GetBillMemberByID godoc
@@ -53,15 +53,15 @@ func (bc BillMemberController) GetAll(c *gin.Context) {
 //	@Router			/billmembers/{id} [get]
 func (bc BillMemberController) GetByID(c *gin.Context) {
 	id := c.Param("id")
-	var billMember models.BillMember
-	result := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&billMember)
+	var obj models.BillMember
+	result := bc.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("Bill").First(&obj)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: "Error: " + result.Error.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, billMember)
+	c.JSON(http.StatusOK, obj)
 }
 
 // CreateBillMember godoc
@@ -76,20 +76,20 @@ func (bc BillMemberController) GetByID(c *gin.Context) {
 // @Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 // @Router /billmembers [post]
 func (bc BillMemberController) CreateAsync(c *gin.Context) {
-	var billMember models.BillMember
-	err := c.BindJSON(&billMember)
+	var obj models.BillMember
+	err := c.BindJSON(&obj)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	result := bc.DB.Create(&billMember)
+	result := bc.DB.Create(&obj)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, billMember)
+	c.JSON(http.StatusOK, obj)
 }
 
 // DeleteBillMember godoc
@@ -105,22 +105,22 @@ func (bc BillMemberController) CreateAsync(c *gin.Context) {
 // @Router /billmembers/{id} [delete]
 func (bc BillMemberController) DeleteAsync(c *gin.Context) {
 	id := c.Param("id")
-	var billMember models.BillMember
+	var obj models.BillMember
 	now := time.Now()
-	result := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&billMember)
+	result := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&obj)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
 	}
 
-	result = bc.DB.Model(&billMember).Update("deleted_at", &now)
-	result = bc.DB.Model(&billMember).Update("updated_at", &now)
+	result = bc.DB.Model(&obj).Update("deleted_at", &now)
+	result = bc.DB.Model(&obj).Update("updated_at", &now)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, billMember)
+	c.JSON(http.StatusOK, obj)
 }
 
 //EditBillMember godoc
@@ -144,14 +144,13 @@ func (bc BillMemberController) EditAsync(c *gin.Context){
 		return
 	}
 
-	var findBillMember models.BillMember
-	if err := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&findBillMember).Error; err != nil {
+	var obj models.BillMember
+	if err := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&obj).Error; err != nil {
 		c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	var updateMember models.BillMember
-	if err := c.ShouldBindJSON(&updateMember); err != nil {
+	if err := c.ShouldBindJSON(&obj); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
@@ -163,13 +162,13 @@ func (bc BillMemberController) EditAsync(c *gin.Context){
     }
 
 	updateData := map[string]interface{}{
-		"BillId": updateMember.BillId,
-		"Name": updateMember.Name,
-		"PriceOwe": updateMember.PriceOwe,
+		"BillId": obj.BillId,
+		"Name": obj.Name,
+		"PriceOwe": obj.PriceOwe,
 		"UpdatedAt": now,
 	}
 
-	if err := tx.Model(&findBillMember).Updates(updateData).Error; err != nil {
+	if err := tx.Model(&obj).Updates(updateData).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
@@ -180,5 +179,5 @@ func (bc BillMemberController) EditAsync(c *gin.Context){
         return
     }
 
-	c.JSON(http.StatusOK, findBillMember)
+	c.JSON(http.StatusOK, obj)
 }
