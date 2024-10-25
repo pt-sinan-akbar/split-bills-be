@@ -39,11 +39,15 @@ var (
 	BillController       controllers.BillController
 	BillOwnerController controllers.BillOwnerController
 	BillMemberController controllers.BillMemberController
+	BillDataController controllers.BillDataController
+	BillItemController controllers.BillItemController
 
 	//Routes
 	BillRouterController routes.BillRouterController
 	BillOwnerRouterController routes.BillOwnerRouterController
 	BillMemberRouterController routes.BillMemberRouterController
+	BillDataRouterController routes.BillDataRouterController
+	BillItemRouterController routes.BillItemRouterController
 )
 
 func init() {
@@ -57,11 +61,15 @@ func init() {
 	BillController = controllers.NewBillController(initializers.DB)
 	BillOwnerController = controllers.NewBillOwnerController(initializers.DB)
 	BillMemberController = controllers.NewBillMemberController(initializers.DB)
+	BillDataController = controllers.NewBillDataController(initializers.DB)
+	BillItemController = controllers.NewBillItemController(initializers.DB)
 
 	//Routes
 	BillRouterController = routes.NewBillRouterController(BillController)
 	BillOwnerRouterController = routes.NewBillOwnerRouterController(BillOwnerController)
 	BillMemberRouterController = routes.NewBillMemberRouterController(BillMemberController)
+	BillDataRouterController = routes.NewBillDataRouterController(BillDataController)
+	BillItemRouterController = routes.NewBillItemRouterController(BillItemController)
 
 	server = gin.Default()
 }
@@ -83,6 +91,9 @@ func main() {
 	BillRouterController.BillRouter(router)
 	BillOwnerRouterController.BillOwnerRouter(router)
 	BillMemberRouterController.BillMemberRouter(router)
+	BillDataRouterController.BillDataRouter(router)
+	BillItemRouterController.BillItemRouter(router)
+	
 	server.GET("/test", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello World",

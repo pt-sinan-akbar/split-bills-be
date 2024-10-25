@@ -29,15 +29,15 @@ func NewBillOwnerController(DB *gorm.DB) BillOwnerController {
 //	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //	@Router			/billowners [get]
 func (bc BillOwnerController) GetAll(c *gin.Context) {
-    var billOwners []models.BillOwner
-    result := bc.DB.Where("deleted_at IS NULL").Find(&billOwners)
+    var obj []models.BillOwner
+    result := bc.DB.Where("deleted_at IS NULL").Find(&obj)
 
     if result.Error != nil {
         c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
         return
     }
 
-    c.JSON(http.StatusOK, billOwners)
+    c.JSON(http.StatusOK, obj)
 }
 
 // GetBillOwnerByID godoc
@@ -52,14 +52,14 @@ func (bc BillOwnerController) GetAll(c *gin.Context) {
 //	@Router			/billowners/{id} [get]
 func (bc BillOwnerController) GetByID(c *gin.Context) {
 	id := c.Param("id")
-	var billOwner models.BillOwner
-	result := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&billOwner)
+	var obj models.BillOwner
+	result := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&obj)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: "Error: " + result.Error.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, billOwner)
+	c.JSON(http.StatusOK, obj)
 }
 
 // CreateBillOwner godoc
@@ -74,21 +74,21 @@ func (bc BillOwnerController) GetByID(c *gin.Context) {
 // @Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 // @Router /billowners [post]
 func (bc BillOwnerController) CreateAsync(c *gin.Context){
-	var billowner models.BillOwner
+	var obj models.BillOwner
 
-	if err := c.ShouldBindJSON(&billowner); err != nil {
+	if err := c.ShouldBindJSON(&obj); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 	// now := time.Now()
 
-	result := bc.DB.Create(&billowner)
+	result := bc.DB.Create(&obj)
 	// result = bc.DB.Model(&billowner).Update("created_at", &now)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 	}
 
-	c.JSON(http.StatusOK, billowner)
+	c.JSON(http.StatusOK, obj)
 }
 
 // DeleteBillOwner godoc
@@ -103,17 +103,17 @@ func (bc BillOwnerController) CreateAsync(c *gin.Context){
 // @Router /billowners/{id} [delete]
 func (bc BillOwnerController) DeleteAsync(c *gin.Context){
 	id := c.Param("id")
-	var billowner models.BillOwner
+	var obj models.BillOwner
 	now := time.Now()
-	result := bc.DB.Where("id = ?", id).First(&billowner)
+	result := bc.DB.Where("id = ?", id).First(&obj)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
 	}
 
-	result = bc.DB.Model(&billowner).Update("deleted_at", &now)
-	result = bc.DB.Model(&billowner).Update("updated_at", &now)
+	result = bc.DB.Model(&obj).Update("deleted_at", &now)
+	result = bc.DB.Model(&obj).Update("updated_at", &now)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
@@ -143,14 +143,13 @@ func (bc BillOwnerController) EditAsync(c *gin.Context) {
 		return
 	}
 
-	var findBillOwner models.BillOwner
-	if err := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&findBillOwner).Error; err != nil {
+	var obj models.BillOwner
+	if err := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&obj).Error; err != nil {
 		c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: "Error: " + err.Error()})
 		return
 	}
 
-	var updateOwner models.BillOwner
-	if err := c.ShouldBindJSON(&updateOwner); err != nil {
+	if err := c.ShouldBindJSON(&obj); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "Invalid request Data: " + err.Error()})
 		return
 	}
@@ -162,14 +161,14 @@ func (bc BillOwnerController) EditAsync(c *gin.Context) {
     }
 
 	updateData := map[string]interface{}{
-        "UserId":      updateOwner.UserId,
-        "Name":        updateOwner.Name,
-        "Contact":     updateOwner.Contact,
-        "BankAccount": updateOwner.BankAccount,
+        "UserId":      obj.UserId,
+        "Name":        obj.Name,
+        "Contact":     obj.Contact,
+        "BankAccount": obj.BankAccount,
         "UpdatedAt":   now,
     }
 
-    if err := tx.Model(&findBillOwner).Updates(updateData).Error; err != nil {
+    if err := tx.Model(&obj).Updates(updateData).Error; err != nil {
         tx.Rollback() 
         c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: "Could not update bill owner: " + err.Error()})
         return
@@ -180,5 +179,5 @@ func (bc BillOwnerController) EditAsync(c *gin.Context) {
         return
     }
 
-	c.JSON(http.StatusOK, findBillOwner)
+	c.JSON(http.StatusOK, obj)
 }
