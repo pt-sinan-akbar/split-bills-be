@@ -24,6 +24,219 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/billowners": {
+            "get": {
+                "description": "Get all Bill Owner",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billowners"
+                ],
+                "summary": "Get all Bill Owner",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BillOwner"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create new bill owner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billowners"
+                ],
+                "summary": "Create new bill owner",
+                "parameters": [
+                    {
+                        "description": "Bill Owner data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BillOwner"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BillOwner"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/billowners/{id}": {
+            "get": {
+                "description": "Get Bill Owner by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billowners"
+                ],
+                "summary": "Get a Bill Owner by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BillOwner"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Edit Bill Owner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billowners"
+                ],
+                "summary": "Edit Bill Owner",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bill Owner ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Edit Bill Owner Data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BillOwner"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BillOwner"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete bill owner by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billowners"
+                ],
+                "summary": "Delete bill owner by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bill Owner ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BillOwner"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/bills": {
             "get": {
                 "description": "Get all Bills from table",

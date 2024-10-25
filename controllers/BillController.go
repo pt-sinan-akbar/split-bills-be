@@ -18,13 +18,13 @@ func NewBillController(DB *gorm.DB) BillController {
 }
 
 // GetAllBills godoc
-// @Summary Get all bills
-// @Description Get all Bills from table
-// @Tags bills
-// @Produce  json
-// @Success 200 {array} models.Bill
-// @Failure 500 {object} helpers.ErrResponse
-// @Router /bills [get]
+//	@Summary		Get all bills
+//	@Description	Get all Bills from table
+//	@Tags			bills
+//	@Produce		json
+//	@Success		200	{array}		models.Bill
+//	@Failure		500	{object}	helpers.ErrResponse
+//	@Router			/bills [get]
 func (bc BillController) GetAll(c *gin.Context) {
 	var bills []models.Bill
 	result := bc.DB.Preload("BillData").Preload("BillOwner").Find(&bills)
@@ -38,15 +38,15 @@ func (bc BillController) GetAll(c *gin.Context) {
 }
 
 // GetBillByID godoc
-// @Summary Get a bill by ID
-// @Description Get bill by ID
-// @Tags bills
-// @Produce  json
-// @Param id path string true "Bill ID"
-// @Success 200 {object} models.Bill
-// @Failure 404 {object} helpers.ErrResponse
-// @Failure 500 {object} helpers.ErrResponse
-// @Router /bills/{id} [get]
+//	@Summary		Get a bill by ID
+//	@Description	Get bill by ID
+//	@Tags			bills
+//	@Produce		json
+//	@Param			id	path		string	true	"Bill ID"
+//	@Success		200	{object}	models.Bill
+//	@Failure		404	{object}	helpers.ErrResponse
+//	@Failure		500	{object}	helpers.ErrResponse
+//	@Router			/bills/{id} [get]
 func (bc BillController) GetByID(c *gin.Context) {
 	id := c.Param("id")
 	var bill models.Bill
@@ -61,15 +61,15 @@ func (bc BillController) GetByID(c *gin.Context) {
 }
 
 // CreateBill godoc
-// @Summary Get a bill by ID
-// @Description Get bill by ID
-// @Tags bills
-// @Produce  json
-// @Param id path string true "Bill ID"
-// @Success 200 {object} models.Bill
-// @Failure 404 {object} helpers.ErrResponse
-// @Failure 500 {object} helpers.ErrResponse
-// @Router /bills/{id} [get]
+//	@Summary		Get a bill by ID
+//	@Description	Get bill by ID
+//	@Tags			bills
+//	@Produce		json
+//	@Param			id	path		string	true	"Bill ID"
+//	@Success		200	{object}	models.Bill
+//	@Failure		404	{object}	helpers.ErrResponse
+//	@Failure		500	{object}	helpers.ErrResponse
+//	@Router			/bills/{id} [get]
 func (bc BillController) CreateBill(c *gin.Context) {
 	var bill models.Bill
 	if err := c.ShouldBindJSON(&bill); err != nil {
@@ -87,14 +87,14 @@ func (bc BillController) CreateBill(c *gin.Context) {
 }
 
 // DeleteBill godoc
-// @Summary Delete a bill by ID
-// @Description Delete bill by ID
-// @Tags bills
-// @Produce  json
-// @Param id path string true "Bill ID"
-// @Success 200 {object} helpers.ErrResponse
-// @Failure 500 {object} helpers.ErrResponse
-// @Router /bills/{id} [delete]
+//	@Summary		Delete a bill by ID
+//	@Description	Delete bill by ID
+//	@Tags			bills
+//	@Produce		json
+//	@Param			id	path		string	true	"Bill ID"
+//	@Success		200	{object}	helpers.ErrResponse
+//	@Failure		500	{object}	helpers.ErrResponse
+//	@Router			/bills/{id} [delete]
 func (bc BillController) DeleteBill(c *gin.Context) {
 	id := c.Param("id")
 	fmt.Println("id", id)
@@ -108,16 +108,16 @@ func (bc BillController) DeleteBill(c *gin.Context) {
 }
 
 // UpdateBill godoc
-// @Summary Update a bill by ID
-// @Description Update bill by ID
-// @Tags bills
-// @Produce  json
-// @Param id path string true "Bill ID"
-// @Param bill body models.Bill true "Bill Data"
-// @Success 200 {object} models.Bill
-// @Failure 400 {object} helpers.ErrResponse
-// @Failure 500 {object} helpers.ErrResponse
-// @Router /bills/{id} [put]
+//	@Summary		Update a bill by ID
+//	@Description	Update bill by ID
+//	@Tags			bills
+//	@Produce		json
+//	@Param			id		path		string		true	"Bill ID"
+//	@Param			bill	body		models.Bill	true	"Bill Data"
+//	@Success		200		{object}	models.Bill
+//	@Failure		400		{object}	helpers.ErrResponse
+//	@Failure		500		{object}	helpers.ErrResponse
+//	@Router			/bills/{id} [put]
 func (bc BillController) UpdateBill(c *gin.Context) {
     id := c.Param("id")
     var bill models.Bill
