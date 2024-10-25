@@ -104,6 +104,7 @@ func (bc BillOwnerController) CreateAsync(c *gin.Context){
 func (bc BillOwnerController) DeleteAsync(c *gin.Context){
 	id := c.Param("id")
 	var billowner models.BillOwner
+	now := time.Now()
 	result := bc.DB.Where("id = ?", id).First(&billowner)
 
 	if result.Error != nil {
@@ -111,7 +112,6 @@ func (bc BillOwnerController) DeleteAsync(c *gin.Context){
 		return
 	}
 
-	now := time.Now()
 	result = bc.DB.Model(&billowner).Update("deleted_at", &now)
 	result = bc.DB.Model(&billowner).Update("updated_at", &now)
 
