@@ -45,13 +45,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Page not found",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error: Server failed to process the request",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
@@ -72,7 +72,7 @@ const docTemplate = `{
                 "summary": "Create new bill owner",
                 "parameters": [
                     {
-                        "description": "Bill Owner data",
+                        "description": "data",
                         "name": "data",
                         "in": "body",
                         "required": true,
@@ -89,13 +89,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Page not found",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error: Server failed to process the request",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
@@ -133,13 +133,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Page not found",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error: Server failed to process the request",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
@@ -161,13 +161,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Bill Owner ID",
+                        "description": "data",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Edit Bill Owner Data",
+                        "description": "data",
                         "name": "data",
                         "in": "body",
                         "required": true,
@@ -184,13 +184,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Page not found",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error: Server failed to process the request",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
@@ -209,7 +209,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Bill Owner ID",
+                        "description": "data",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -223,13 +223,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Page not found",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error: Server failed to process the request",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
@@ -257,8 +257,14 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error: Server failed to process the request",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
@@ -279,8 +285,8 @@ const docTemplate = `{
                 "summary": "Create a new bill",
                 "parameters": [
                     {
-                        "description": "Bill Data",
-                        "name": "bill",
+                        "description": "data",
+                        "name": "data",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -301,8 +307,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
                     },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error: Server failed to process the request",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
@@ -323,7 +335,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bill ID",
+                        "description": "data",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -337,13 +349,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Page not found",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error: Server failed to process the request",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
@@ -362,14 +374,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bill ID",
+                        "description": "data",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Bill Data",
-                        "name": "bill",
+                        "description": "data",
+                        "name": "data",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -384,14 +396,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Bill"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "404": {
+                        "description": "Page not found",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error: Server failed to process the request",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
@@ -410,7 +422,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Bill ID",
+                        "description": "data",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -423,8 +435,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }
                     },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal Server Error: Server failed to process the request",
                         "schema": {
                             "$ref": "#/definitions/helpers.ErrResponse"
                         }

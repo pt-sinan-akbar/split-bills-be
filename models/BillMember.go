@@ -13,4 +13,5 @@ type BillMember struct {
 	PriceOwe  float64     `gorm:"type:decimal(10,2)" json:"price_owe,omitempty"`
 	CreatedAt time.Time   `gorm:"type:timestamp" json:"-"`
 	UpdatedAt time.Time   `gorm:"type:timestamp" json:"-"`
+	DeletedAt   *time.Time `gorm:"type:timestamp" json:"-"`	
 }

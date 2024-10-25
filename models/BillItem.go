@@ -17,4 +17,5 @@ type BillItem struct {
 	Discount   float64       `gorm:"type:decimal(10,2)" json:"discount,omitempty"`
 	CreatedAt  time.Time     `gorm:"type:timestamp" json:"-"`
 	UpdatedAt  time.Time     `gorm:"type:timestamp" json:"-"`
+	DeletedAt   *time.Time `gorm:"type:timestamp" json:"-"`	
 }

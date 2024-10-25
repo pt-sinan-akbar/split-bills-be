@@ -12,4 +12,5 @@ type BillOwner struct {
 	BankAccount string    `gorm:"type:varchar(50)" json:"bank_account,omitempty"`
 	CreatedAt   time.Time `gorm:"type:timestamp" json:"-"`
 	UpdatedAt   time.Time `gorm:"type:timestamp" json:"-"`
+	DeletedAt   *time.Time `gorm:"type:timestamp" json:"-"`
 }

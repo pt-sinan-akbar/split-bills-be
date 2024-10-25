@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pt-sinan-akbar/helpers"
 	"github.com/pt-sinan-akbar/models"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 type BillController struct {
@@ -23,12 +25,13 @@ func NewBillController(DB *gorm.DB) BillController {
 //	@Tags			bills
 //	@Produce		json
 //	@Success		200	{array}		models.Bill
-//	@Failure		500	{object}	helpers.ErrResponse
+//	@Failure		404	{object}	helpers.ErrResponse "Page not found"
+//	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //	@Router			/bills [get]
 func (bc BillController) GetAll(c *gin.Context) {
 	var bills []models.Bill
-	result := bc.DB.Preload("BillData").Preload("BillOwner").Find(&bills)
-
+	// result := bc.DB.Preload("BillData").Preload("BillOwner").Find(&bills)
+	result := bc.DB.Where("deleted_at IS NULL").Find(&bills)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
@@ -43,10 +46,10 @@ func (bc BillController) GetAll(c *gin.Context) {
 //	@Description	Get bill by ID
 //	@Tags			bills
 //	@Produce		json
-//	@Param			id	path		string	true	"Bill ID"
+//	@Param			id	path		string	true	"data"
 //	@Success		200	{object}	models.Bill
-//	@Failure		404	{object}	helpers.ErrResponse
-//	@Failure		500	{object}	helpers.ErrResponse
+//	@Failure		404	{object}	helpers.ErrResponse "Page not found"
+//	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //	@Router			/bills/{id} [get]
 func (bc BillController) GetByID(c *gin.Context) {
 	id := c.Param("id")
@@ -68,12 +71,13 @@ func (bc BillController) GetByID(c *gin.Context) {
 //	@Tags			bills
 //	@Accept			json
 //	@Produce		json
-//	@Param			bill	body	models.Bill	true	"Bill Data"
+//	@Param			data	body	models.Bill	true	"data"
 //	@Success		201	{object}	models.Bill
 //	@Failure		400	{object}	helpers.ErrResponse
-//	@Failure		500	{object}	helpers.ErrResponse
+//	@Failure		404	{object}	helpers.ErrResponse "Page not found"
+//	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //	@Router			/bills [post]
-func (bc BillController) CreateBill(c *gin.Context) {
+func (bc BillController) CreateAsync(c *gin.Context) {
 	var bill models.Bill
 	if err := c.ShouldBindJSON(&bill); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
@@ -95,19 +99,32 @@ func (bc BillController) CreateBill(c *gin.Context) {
 //	@Description	Delete bill by ID
 //	@Tags			bills
 //	@Produce		json
-//	@Param			id	path		string	true	"Bill ID"
+//	@Param			id	path		string	true	"data"
 //	@Success		200	{object}	helpers.ErrResponse
-//	@Failure		500	{object}	helpers.ErrResponse
+//	@Failure		404	{object}	helpers.ErrResponse "Page not found"
+//	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //	@Router			/bills/{id} [delete]
-func (bc BillController) DeleteBill(c *gin.Context) {
+func (bc BillController) DeleteAsync(c *gin.Context) {
 	id := c.Param("id")
-	result := bc.DB.Where("id = ?", id).Delete(&models.Bill{})
+	var bill models.Bill
+	result := bc.DB.Where("id = ?", id).First(&bill)
+
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Bill deleted successfully"})
+	now := time.Now()
+	result = bc.DB.Model(&bill).Update("deleted_at", &now)
+	result = bc.DB.Model(&bill).Update("updated_at", &now)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
+		return
+	}
+	
+	// c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Bill deleted successfully"})
+	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Successfully deleted record"}) 
 }
 
 // UpdateBill godoc
@@ -116,47 +133,52 @@ func (bc BillController) DeleteBill(c *gin.Context) {
 //	@Description	Update bill by ID
 //	@Tags			bills
 //	@Produce		json
-//	@Param			id		path		string		true	"Bill ID"
-//	@Param			bill	body		models.Bill	true	"Bill Data"
+//	@Param			id		path		string		true	"data"
+//	@Param			data	body		models.Bill	true	"data"
 //	@Success		200		{object}	models.Bill
-//	@Failure		400		{object}	helpers.ErrResponse
-//	@Failure		500		{object}	helpers.ErrResponse
+//	@Failure		404	{object}	helpers.ErrResponse "Page not found"
+//	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //	@Router			/bills/{id} [put]
-func (bc BillController) UpdateBill(c *gin.Context) {
+func (bc BillController) EditAsync(c *gin.Context) {
 	id := c.Param("id")
-	var bill models.Bill
+	now := time.Now()
 
-	if err := bc.DB.Preload("BillData").Where("id = ?", id).First(&bill).Error; err != nil {
+	var findbill models.Bill
+	if err := bc.DB.Where("id = ? AND deleted_at IS NULL", id).First(&findbill).Error; err != nil {
 		c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	if err := c.ShouldBindJSON(&bill); err != nil {
+	var updateBill models.Bill
+	if err := c.ShouldBindJSON(&updateBill); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
 	tx := bc.DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: tx.Error.Error()})
+		return
+	}
 
-	if err := tx.Model(&bill).Updates(bill).Error; err != nil {
+	updateData := map[string]interface{}{
+		"Name": updateBill.Name,
+		"RawImage": updateBill.RawImage,
+		"ID": updateBill.ID,
+		"BillOwnerId": updateBill.BillOwnerId,
+		"UpdatedAt": now,
+	}
+
+	if err := tx.Model(&findbill).Updates(updateData).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	for _, data := range bill.BillData {
-		if err := tx.Model(&data).Where("id = ?", data.ID).Updates(data).Error; err != nil {
-			tx.Rollback()
-			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
-			return
-		}
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+		return
 	}
 
-	tx.Commit()
-	c.JSON(http.StatusOK, bill)
+	c.JSON(http.StatusOK, findbill)
 }
