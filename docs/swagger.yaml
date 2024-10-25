@@ -7,77 +7,31 @@ definitions:
     type: object
   models.Bill:
     properties:
-      billData:
-        description: has many BillData
-        items:
-          $ref: '#/definitions/models.BillData'
-        type: array
-      billOwner:
-        $ref: '#/definitions/models.BillOwner'
-      billOwnerId:
+      bill_owner_id:
         description: belongs to a BillOwner
         type: integer
-      createdAt:
-        type: string
-      deletedAt:
-        type: string
       id:
         type: string
       name:
         type: string
-      rawImage:
-        type: string
-      updatedAt:
-        type: string
-    type: object
-  models.BillData:
-    properties:
-      bill:
-        $ref: '#/definitions/models.Bill'
-      billId:
-        description: belongs to a Bill
-        type: string
-      createdAt:
-        type: string
-      discount:
-        type: number
-      id:
-        type: integer
-      misc:
-        type: string
-      service:
-        type: number
-      storeName:
-        type: string
-      subTotal:
-        type: number
-      tax:
-        type: number
-      total:
-        type: number
-      updatedAt:
+      raw_image:
         type: string
     type: object
   models.BillOwner:
     properties:
-      bankAccount:
+      bank_account:
         type: string
-      bill:
-        description: has many Bill
-        items:
-          $ref: '#/definitions/models.Bill'
-        type: array
       contact:
         type: string
-      createdAt:
+      created_at:
         type: string
       id:
         type: integer
       name:
         type: string
-      updatedAt:
+      updated_at:
         type: string
-      userId:
+      user_id:
         type: integer
     type: object
 externalDocs:
@@ -255,6 +209,35 @@ paths:
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Get all bills
+      tags:
+      - bills
+    post:
+      consumes:
+      - application/json
+      description: Create a new bill
+      parameters:
+      - description: Bill Data
+        in: body
+        name: bill
+        required: true
+        schema:
+          $ref: '#/definitions/models.Bill'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Bill'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Create a new bill
       tags:
       - bills
   /bills/{id}:

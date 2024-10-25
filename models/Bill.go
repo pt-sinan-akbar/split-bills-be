@@ -5,15 +5,15 @@ import (
 )
 
 type Bill struct {
-	ID string `gorm:"type:varchar(50);primary_key"`
+	ID string `gorm:"type:varchar(50);primary_key" json:"id,omitempty"`
 	// has many BillData
-	BillData []BillData `gorm:"foreignkey:BillId"`
+	BillData []BillData `gorm:"foreignkey:BillId" json:"-"`
 	// belongs to a BillOwner
-	BillOwnerId int64     `gorm:"type:int;not null"`
-	BillOwner   BillOwner `gorm:"foreignKey:BillOwnerId"`
-	Name        string    `gorm:"type:varchar(50)"`
-	RawImage    string    `gorm:"type:varchar(50)"`
-	CreatedAt   time.Time `gorm:"type:timestamp"`
-	UpdatedAt   time.Time `gorm:"type:timestamp"`
-	DeletedAt   time.Time `gorm:"type:timestamp"`
+	BillOwnerId int64      `gorm:"type:int;not null" json:"bill_owner_id,omitempty"`
+	BillOwner   BillOwner  `gorm:"foreignKey:BillOwnerId" json:"-"`
+	Name        string     `gorm:"type:varchar(50)" json:"name,omitempty"`
+	RawImage    string     `gorm:"type:varchar(50)" json:"raw_image,omitempty"`
+	CreatedAt   time.Time  `gorm:"type:timestamp" json:"-"`
+	UpdatedAt   time.Time  `gorm:"type:timestamp" json:"-"`
+	DeletedAt   *time.Time `gorm:"type:timestamp" json:"-"`
 }

@@ -264,6 +264,50 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "description": "Create a new bill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "Create a new bill",
+                "parameters": [
+                    {
+                        "description": "Bill Data",
+                        "name": "bill",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Bill"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Bill"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
             }
         },
         "/bills/{id}": {
@@ -401,25 +445,9 @@ const docTemplate = `{
         "models.Bill": {
             "type": "object",
             "properties": {
-                "billData": {
-                    "description": "has many BillData",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.BillData"
-                    }
-                },
-                "billOwner": {
-                    "$ref": "#/definitions/models.BillOwner"
-                },
-                "billOwnerId": {
+                "bill_owner_id": {
                     "description": "belongs to a BillOwner",
                     "type": "integer"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
                 },
                 "id": {
                     "type": "string"
@@ -427,52 +455,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "rawImage": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.BillData": {
-            "type": "object",
-            "properties": {
-                "bill": {
-                    "$ref": "#/definitions/models.Bill"
-                },
-                "billId": {
-                    "description": "belongs to a Bill",
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "discount": {
-                    "type": "number"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "misc": {
-                    "type": "string"
-                },
-                "service": {
-                    "type": "number"
-                },
-                "storeName": {
-                    "type": "string"
-                },
-                "subTotal": {
-                    "type": "number"
-                },
-                "tax": {
-                    "type": "number"
-                },
-                "total": {
-                    "type": "number"
-                },
-                "updatedAt": {
+                "raw_image": {
                     "type": "string"
                 }
             }
@@ -480,20 +463,13 @@ const docTemplate = `{
         "models.BillOwner": {
             "type": "object",
             "properties": {
-                "bankAccount": {
+                "bank_account": {
                     "type": "string"
-                },
-                "bill": {
-                    "description": "has many Bill",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Bill"
-                    }
                 },
                 "contact": {
                     "type": "string"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string"
                 },
                 "id": {
@@ -502,10 +478,10 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string"
                 },
-                "userId": {
+                "user_id": {
                     "type": "integer"
                 }
             }

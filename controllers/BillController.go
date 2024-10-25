@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pt-sinan-akbar/helpers"
 	"github.com/pt-sinan-akbar/models"
@@ -18,6 +17,7 @@ func NewBillController(DB *gorm.DB) BillController {
 }
 
 // GetAllBills godoc
+//
 //	@Summary		Get all bills
 //	@Description	Get all Bills from table
 //	@Tags			bills
@@ -38,6 +38,7 @@ func (bc BillController) GetAll(c *gin.Context) {
 }
 
 // GetBillByID godoc
+//
 //	@Summary		Get a bill by ID
 //	@Description	Get bill by ID
 //	@Tags			bills
@@ -61,15 +62,17 @@ func (bc BillController) GetByID(c *gin.Context) {
 }
 
 // CreateBill godoc
-//	@Summary		Get a bill by ID
-//	@Description	Get bill by ID
+//
+//	@Summary		Create a new bill
+//	@Description	Create a new bill
 //	@Tags			bills
+//	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string	true	"Bill ID"
-//	@Success		200	{object}	models.Bill
-//	@Failure		404	{object}	helpers.ErrResponse
+//	@Param			bill	body	models.Bill	true	"Bill Data"
+//	@Success		201	{object}	models.Bill
+//	@Failure		400	{object}	helpers.ErrResponse
 //	@Failure		500	{object}	helpers.ErrResponse
-//	@Router			/bills/{id} [get]
+//	@Router			/bills [post]
 func (bc BillController) CreateBill(c *gin.Context) {
 	var bill models.Bill
 	if err := c.ShouldBindJSON(&bill); err != nil {
@@ -87,6 +90,7 @@ func (bc BillController) CreateBill(c *gin.Context) {
 }
 
 // DeleteBill godoc
+//
 //	@Summary		Delete a bill by ID
 //	@Description	Delete bill by ID
 //	@Tags			bills
@@ -97,7 +101,6 @@ func (bc BillController) CreateBill(c *gin.Context) {
 //	@Router			/bills/{id} [delete]
 func (bc BillController) DeleteBill(c *gin.Context) {
 	id := c.Param("id")
-	fmt.Println("id", id)
 	result := bc.DB.Where("id = ?", id).Delete(&models.Bill{})
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
@@ -108,6 +111,7 @@ func (bc BillController) DeleteBill(c *gin.Context) {
 }
 
 // UpdateBill godoc
+//
 //	@Summary		Update a bill by ID
 //	@Description	Update bill by ID
 //	@Tags			bills
@@ -119,42 +123,40 @@ func (bc BillController) DeleteBill(c *gin.Context) {
 //	@Failure		500		{object}	helpers.ErrResponse
 //	@Router			/bills/{id} [put]
 func (bc BillController) UpdateBill(c *gin.Context) {
-    id := c.Param("id")
-    var bill models.Bill
+	id := c.Param("id")
+	var bill models.Bill
 
-    if err := bc.DB.Preload("BillData").Where("id = ?", id).First(&bill).Error; err != nil {
-        c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: err.Error()})
-        return
-    }
+	if err := bc.DB.Preload("BillData").Where("id = ?", id).First(&bill).Error; err != nil {
+		c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
 
-    if err := c.ShouldBindJSON(&bill); err != nil {
-        c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
-        return
-    }
+	if err := c.ShouldBindJSON(&bill); err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
 
-    tx := bc.DB.Begin()
-    defer func() {
-        if r := recover(); r != nil {
-            tx.Rollback()
-        }
-    }()
+	tx := bc.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
-    if err := tx.Model(&bill).Updates(bill).Error; err != nil {
-        tx.Rollback()
-        c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
-        return
-    }
+	if err := tx.Model(&bill).Updates(bill).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
 
-    for _, data := range bill.BillData {
-        if err := tx.Model(&data).Where("id = ?", data.ID).Updates(data).Error; err != nil {
-            tx.Rollback()
-            c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
-            return
-        }
-    }
+	for _, data := range bill.BillData {
+		if err := tx.Model(&data).Where("id = ?", data.ID).Updates(data).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+			return
+		}
+	}
 
-    tx.Commit()
-    c.JSON(http.StatusOK, bill)
+	tx.Commit()
+	c.JSON(http.StatusOK, bill)
 }
-
-
