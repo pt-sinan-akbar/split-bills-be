@@ -38,10 +38,12 @@ var (
 	//Controllers
 	BillController       controllers.BillController
 	BillOwnerController controllers.BillOwnerController
+	BillMemberController controllers.BillMemberController
 
 	//Routes
 	BillRouterController routes.BillRouterController
 	BillOwnerRouterController routes.BillOwnerRouterController
+	BillMemberRouterController routes.BillMemberRouterController
 )
 
 func init() {
@@ -54,10 +56,12 @@ func init() {
 	//Controllers
 	BillController = controllers.NewBillController(initializers.DB)
 	BillOwnerController = controllers.NewBillOwnerController(initializers.DB)
+	BillMemberController = controllers.NewBillMemberController(initializers.DB)
 
 	//Routes
 	BillRouterController = routes.NewBillRouterController(BillController)
 	BillOwnerRouterController = routes.NewBillOwnerRouterController(BillOwnerController)
+	BillMemberRouterController = routes.NewBillMemberRouterController(BillMemberController)
 
 	server = gin.Default()
 }
@@ -78,6 +82,7 @@ func main() {
 
 	BillRouterController.BillRouter(router)
 	BillOwnerRouterController.BillOwnerRouter(router)
+	BillMemberRouterController.BillMemberRouter(router)
 	server.GET("/test", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello World",

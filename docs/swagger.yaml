@@ -17,6 +17,18 @@ definitions:
       raw_image:
         type: string
     type: object
+  models.BillMember:
+    properties:
+      bill_id:
+        description: belongs to a Bill
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price_owe:
+        type: number
+    type: object
   models.BillOwner:
     properties:
       bank_account:
@@ -47,6 +59,149 @@ info:
   title: Split Bill API
   version: "1.0"
 paths:
+  /billmembers:
+    get:
+      description: Get all Bill Members
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.BillMember'
+            type: array
+        "404":
+          description: Page not found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: 'Internal Server Error: Server failed to process the request'
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Get all Bill Members
+      tags:
+      - billmembers
+    post:
+      consumes:
+      - application/json
+      description: Create a new bill member
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.BillMember'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BillOwner'
+        "404":
+          description: Page not found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: 'Internal Server Error: Server failed to process the request'
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Create a new bill member
+      tags:
+      - billmembers
+  /billmembers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a bill member by ID
+      parameters:
+      - description: data
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BillOwner'
+        "404":
+          description: Page not found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: 'Internal Server Error: Server failed to process the request'
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Delete a bill member by ID
+      tags:
+      - billmembers
+    get:
+      description: Get a bill member by ID
+      parameters:
+      - description: data
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.BillMember'
+            type: array
+        "404":
+          description: Page not found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: 'Internal Server Error: Server failed to process the request'
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Get a bill member by ID
+      tags:
+      - billmembers
+    put:
+      consumes:
+      - application/json
+      description: Edit Bill Member
+      parameters:
+      - description: data
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.BillMember'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BillOwner'
+        "404":
+          description: Page not found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: 'Internal Server Error: Server failed to process the request'
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Edit Bill Member
+      tags:
+      - billmembers
   /billowners:
     get:
       description: Get all Bill Owner
