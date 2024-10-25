@@ -14,6 +14,6 @@ type BillData struct {
 	Service   float64   `gorm:"type:decimal(10,2)" json:"service,omitempty"`
 	Total     float64   `gorm:"type:decimal(10,2)" json:"total,omitempty"`
 	Misc      string    `gorm:"type:varchar(50)" json:"misc,omitempty"`
-	CreatedAt time.Time `gorm:"type:timestamp" json:"created_at"`
-	UpdatedAt time.Time `gorm:"type:timestamp" json:"updated_at"`
+	CreatedAt time.Time `gorm:"type:timestamp" json:"-"`
+	UpdatedAt time.Time `gorm:"type:timestamp" json:"-"`
 }

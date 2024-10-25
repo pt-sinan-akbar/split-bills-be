@@ -11,6 +11,6 @@ type BillMember struct {
 	BillItem  []*BillItem `gorm:"many2many:bill_member_items;" json:"-"`
 	Name      string      `gorm:"type:varchar(50)" json:"name,omitempty"`
 	PriceOwe  float64     `gorm:"type:decimal(10,2)" json:"price_owe,omitempty"`
-	CreatedAt time.Time   `gorm:"type:timestamp" json:"created_at"`
-	UpdatedAt time.Time   `gorm:"type:timestamp" json:"updated_at"`
+	CreatedAt time.Time   `gorm:"type:timestamp" json:"-"`
+	UpdatedAt time.Time   `gorm:"type:timestamp" json:"-"`
 }

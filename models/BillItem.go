@@ -15,6 +15,6 @@ type BillItem struct {
 	Tax        float64       `gorm:"type:decimal(10,2)" json:"tax,omitempty"`
 	Service    float64       `gorm:"type:decimal(10,2)" json:"service,omitempty"`
 	Discount   float64       `gorm:"type:decimal(10,2)" json:"discount,omitempty"`
-	CreatedAt  time.Time     `gorm:"type:timestamp" json:"created_at"`
-	UpdatedAt  time.Time     `gorm:"type:timestamp" json:"updated_at"`
+	CreatedAt  time.Time     `gorm:"type:timestamp" json:"-"`
+	UpdatedAt  time.Time     `gorm:"type:timestamp" json:"-"`
 }
