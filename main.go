@@ -33,21 +33,21 @@ import (
 //	@externalDocs.url			https://swagger.io/resources/open-api/
 
 var (
-	server               *gin.Engine
+	server *gin.Engine
 
 	//Controllers
 	BillController       controllers.BillController
-	BillOwnerController controllers.BillOwnerController
+	BillOwnerController  controllers.BillOwnerController
 	BillMemberController controllers.BillMemberController
-	BillDataController controllers.BillDataController
-	BillItemController controllers.BillItemController
+	BillDataController   controllers.BillDataController
+	BillItemController   controllers.BillItemController
 
 	//Routes
-	BillRouterController routes.BillRouterController
-	BillOwnerRouterController routes.BillOwnerRouterController
+	BillRouterController       routes.BillRouterController
+	BillOwnerRouterController  routes.BillOwnerRouterController
 	BillMemberRouterController routes.BillMemberRouterController
-	BillDataRouterController routes.BillDataRouterController
-	BillItemRouterController routes.BillItemRouterController
+	BillDataRouterController   routes.BillDataRouterController
+	BillItemRouterController   routes.BillItemRouterController
 )
 
 func init() {
@@ -58,7 +58,7 @@ func init() {
 
 	initializers.ConnectDB(&config)
 	//Controllers
-	BillController = controllers.NewBillController(initializers.DB)
+	BillController = controllers.NewBillController(initializers.DB, config)
 	BillOwnerController = controllers.NewBillOwnerController(initializers.DB)
 	BillMemberController = controllers.NewBillMemberController(initializers.DB)
 	BillDataController = controllers.NewBillDataController(initializers.DB)
@@ -79,7 +79,6 @@ func main() {
 	if err != nil {
 		log.Fatal("? Could not load environment variables", err)
 	}
-
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowAllOrigins = true
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
@@ -93,7 +92,7 @@ func main() {
 	BillMemberRouterController.BillMemberRouter(router)
 	BillDataRouterController.BillDataRouter(router)
 	BillItemRouterController.BillItemRouter(router)
-	
+
 	server.GET("/test", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello World",
