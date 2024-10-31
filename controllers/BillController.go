@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	gonanoid "github.com/matoous/go-nanoid/v2"
+	"github.com/pt-sinan-akbar/initializers"
+	"github.com/pt-sinan-akbar/manager"
 	"net/http"
 	"time"
 
@@ -11,11 +14,12 @@ import (
 )
 
 type BillController struct {
-	DB *gorm.DB
+	DB     *gorm.DB
+	Config initializers.Config
 }
 
-func NewBillController(DB *gorm.DB) BillController {
-	return BillController{DB}
+func NewBillController(DB *gorm.DB, Config initializers.Config) BillController {
+	return BillController{DB, Config}
 }
 
 // GetAllBills godoc
@@ -79,9 +83,36 @@ func (bc BillController) GetByID(c *gin.Context) {
 //	@Router			/bills [post]
 func (bc BillController) CreateAsync(c *gin.Context) {
 	var obj models.Bill
+	var imageName string
+
+	billManager := manager.NewBillManager(bc.DB, bc.Config)
+
+	image, err := c.FormFile("image")
+
+	if image != nil {
+		imageName, err = billManager.SaveImage(image)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+			return
+		}
+	}
+
 	if err := c.ShouldBindJSON(&obj); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
+	}
+
+	if obj.ID == "" {
+		id, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 8)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+			return
+		}
+		obj.ID = id
+	}
+
+	if image != nil {
+		obj.RawImage = imageName
 	}
 
 	result := bc.DB.Create(&obj)
@@ -122,9 +153,9 @@ func (bc BillController) DeleteAsync(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
 		return
 	}
-	
+
 	// c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Bill deleted successfully"})
-	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Successfully deleted record"}) 
+	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Successfully deleted record"})
 }
 
 // UpdateBill godoc
@@ -161,11 +192,11 @@ func (bc BillController) EditAsync(c *gin.Context) {
 	}
 
 	updateData := map[string]interface{}{
-		"Name": obj.Name,
-		"RawImage": obj.RawImage,
-		"ID": obj.ID,
+		"Name":        obj.Name,
+		"RawImage":    obj.RawImage,
+		"ID":          obj.ID,
 		"BillOwnerId": obj.BillOwnerId,
-		"UpdatedAt": now,
+		"UpdatedAt":   now,
 	}
 
 	if err := tx.Model(&obj).Updates(updateData).Error; err != nil {
