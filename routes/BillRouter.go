@@ -20,4 +20,5 @@ func (brc *BillRouterController) BillRouter(rg *gin.RouterGroup) {
 	rg.POST("/bills", brc.billController.CreateAsync)
 	rg.PUT("/bills/:id", brc.billController.EditAsync)
 	rg.DELETE("/bills/:id", brc.billController.DeleteAsync)
+	rg.PUT("/dynamicUpdate", brc.billController.DynamicUpdate)
 }

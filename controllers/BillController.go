@@ -19,17 +19,11 @@ type BillController struct {
 	BM     *manager.BillManager
 }
 
-func NewBillController(DB *gorm.DB) BillController {
-	billManager, err := manager.NewBillManager(DB)
-	if err != nil {
-		return BillController{}
-	}
-
+func NewBillController(DB *gorm.DB, billManager *manager.BillManager) BillController {
 	config, err := initializers.LoadConfig(".")
 	if err != nil {
 		return BillController{}
 	}
-
 	return BillController{DB, config, billManager}
 }
 
@@ -97,14 +91,11 @@ func (bc BillController) GetAll(c *gin.Context) {
 //	@Router			/bills/{id} [get]
 func (bc BillController) GetByID(c *gin.Context) {
 	id := c.Param("id")
-	var obj models.Bill
-	result := bc.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("BillData").Preload("BillOwner").First(&obj)
-
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
+	obj, err := bc.BM.GetByID(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusOK, obj)
 }
 
@@ -225,4 +216,43 @@ func (bc BillController) EditAsync(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, obj)
+}
+
+func (bc BillController) DynamicUpdate(c *gin.Context) {
+	var req DynamicUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	fmt.Println(req)
+	if req.BillId == "" {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "what is the bill la"})
+		return
+	}
+	// update item
+	if req.Item.Id != 0 && req.Item.Price != 0 && req.Item.Quantity != 0 {
+		fmt.Println("update item")
+		c.JSON(http.StatusOK, helpers.ErrResponse{Message: "item updated"})
+		return
+	}
+	// update tax/service
+	if req.Tax != 0 && req.Service != 0 {
+		fmt.Println("update tax/service")
+		c.JSON(http.StatusOK, helpers.ErrResponse{Message: "tax/service updated"})
+		return
+	}
+	// stupid request
+	c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "check your request"})
+	return
+}
+
+type DynamicUpdateRequest struct {
+	BillId string `json:"bill_id"`
+	Item   struct {
+		Id       int     `json:"id"`
+		Price    float64 `json:"price"`
+		Quantity int     `json:"quantity"`
+	} `json:"item"`
+	Tax     float64 `json:"tax"`
+	Service float64 `json:"service"`
 }

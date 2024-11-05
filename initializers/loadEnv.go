@@ -15,6 +15,8 @@ type Config struct {
 	SupbaseFolder      string `mapstructure:"SUPABASE_FOLDER"`
 }
 
+var ConfigSetting = &Config{}
+
 func LoadConfig(path string) (config Config, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigType("env")
@@ -28,5 +30,6 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 
 	err = viper.Unmarshal(&config)
+	ConfigSetting = &config
 	return
 }
