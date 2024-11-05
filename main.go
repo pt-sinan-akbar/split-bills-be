@@ -5,11 +5,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pt-sinan-akbar/controllers"
 	_ "github.com/pt-sinan-akbar/docs"
+	"github.com/pt-sinan-akbar/helper"
 	"github.com/pt-sinan-akbar/initializers"
+	"github.com/pt-sinan-akbar/manager"
 	"github.com/pt-sinan-akbar/routes"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
 	"log"
+	"net/http"
 )
 
 //	@title			Split Bill API
@@ -48,6 +51,9 @@ var (
 	BillMemberRouterController routes.BillMemberRouterController
 	BillDataRouterController   routes.BillDataRouterController
 	BillItemRouterController   routes.BillItemRouterController
+
+	// Manager
+	BillManager *manager.BillManager
 )
 
 func init() {
@@ -58,7 +64,7 @@ func init() {
 
 	initializers.ConnectDB(&config)
 	//Controllers
-	BillController = controllers.NewBillController(initializers.DB, config)
+	BillController = controllers.NewBillController(initializers.DB)
 	BillOwnerController = controllers.NewBillOwnerController(initializers.DB)
 	BillMemberController = controllers.NewBillMemberController(initializers.DB)
 	BillDataController = controllers.NewBillDataController(initializers.DB)
@@ -97,6 +103,17 @@ func main() {
 		c.JSON(200, gin.H{
 			"message": "Hello World",
 		})
+	})
+	server.GET("/generate-image", func(c *gin.Context) {
+		bytes, err := helper.GenerateInitialsImage("Sinan")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate image",
+				"message": err.Error()})
+			return
+		}
+
+		c.Header("Content-Type", "image/png")
+		c.Writer.Write(bytes)
 	})
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
