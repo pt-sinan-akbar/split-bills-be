@@ -7,17 +7,17 @@ definitions:
     type: object
   models.Bill:
     properties:
-      bill_owner_id:
-        type: integer
-      billData:
+      bill_data:
         description: has many BillData
         items:
           $ref: '#/definitions/models.BillData'
         type: array
-      billOwner:
+      bill_owner:
         allOf:
         - $ref: '#/definitions/models.BillOwner'
         description: belongs to a BillOwner
+      bill_owner_id:
+        type: integer
       created_at:
         type: string
       id:
@@ -64,11 +64,13 @@ definitions:
       bill_id:
         description: belongs to a Bill
         type: string
-      billMember:
+      bill_member:
         description: many to many
         items:
           $ref: '#/definitions/models.BillMember'
         type: array
+      created_at:
+        type: string
       discount:
         type: number
       id:
@@ -83,6 +85,8 @@ definitions:
         type: number
       tax:
         type: number
+      updated_at:
+        type: string
     type: object
   models.BillMember:
     properties:
@@ -91,6 +95,11 @@ definitions:
       bill_id:
         description: belongs to a Bill
         type: string
+      bill_item:
+        description: many to many
+        items:
+          $ref: '#/definitions/models.BillItem'
+        type: array
       created_at:
         type: string
       id:
@@ -106,6 +115,11 @@ definitions:
     properties:
       bank_account:
         type: string
+      bill:
+        description: has many Bill
+        items:
+          $ref: '#/definitions/models.Bill'
+        type: array
       contact:
         type: string
       created_at:
@@ -807,6 +821,39 @@ paths:
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Update a bill by ID
+      tags:
+      - bills
+  /bills/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload image
+      parameters:
+      - description: image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "404":
+          description: Page not found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: 'Internal Server Error: Server failed to process the request'
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Upload image
       tags:
       - bills
 securityDefinitions:

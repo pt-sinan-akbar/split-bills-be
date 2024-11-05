@@ -14,6 +14,7 @@ func NewBillRouterController(bc controllers.BillController) BillRouterController
 }
 
 func (brc *BillRouterController) BillRouter(rg *gin.RouterGroup) {
+	rg.POST("/bills/upload", brc.billController.UploadImage)
 	rg.GET("/bills", brc.billController.GetAll)
 	rg.GET("/bills/:id", brc.billController.GetByID)
 	rg.POST("/bills", brc.billController.CreateAsync)

@@ -913,6 +913,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/bills/upload": {
+            "post": {
+                "description": "Upload image",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "Upload image",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "image",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/bills/{id}": {
             "get": {
                 "description": "Get bill by ID",
@@ -1054,14 +1104,14 @@ const docTemplate = `{
         "models.Bill": {
             "type": "object",
             "properties": {
-                "billData": {
+                "bill_data": {
                     "description": "has many BillData",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.BillData"
                     }
                 },
-                "billOwner": {
+                "bill_owner": {
                     "description": "belongs to a BillOwner",
                     "allOf": [
                         {
@@ -1137,15 +1187,18 @@ const docTemplate = `{
                 "bill": {
                     "$ref": "#/definitions/models.Bill"
                 },
-                "billMember": {
+                "bill_id": {
+                    "description": "belongs to a Bill",
+                    "type": "string"
+                },
+                "bill_member": {
                     "description": "many to many",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.BillMember"
                     }
                 },
-                "bill_id": {
-                    "description": "belongs to a Bill",
+                "created_at": {
                     "type": "string"
                 },
                 "discount": {
@@ -1168,6 +1221,9 @@ const docTemplate = `{
                 },
                 "tax": {
                     "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -1180,6 +1236,13 @@ const docTemplate = `{
                 "bill_id": {
                     "description": "belongs to a Bill",
                     "type": "string"
+                },
+                "bill_item": {
+                    "description": "many to many",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.BillItem"
+                    }
                 },
                 "created_at": {
                     "type": "string"
@@ -1203,6 +1266,13 @@ const docTemplate = `{
             "properties": {
                 "bank_account": {
                     "type": "string"
+                },
+                "bill": {
+                    "description": "has many Bill",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Bill"
+                    }
                 },
                 "contact": {
                     "type": "string"

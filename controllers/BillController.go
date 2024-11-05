@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	gonanoid "github.com/matoous/go-nanoid/v2"
+	"fmt"
 	"github.com/pt-sinan-akbar/initializers"
 	"github.com/pt-sinan-akbar/manager"
 	"net/http"
@@ -16,22 +16,62 @@ import (
 type BillController struct {
 	DB     *gorm.DB
 	Config initializers.Config
+	BM     *manager.BillManager
 }
 
-func NewBillController(DB *gorm.DB, Config initializers.Config) BillController {
-	return BillController{DB, Config}
+func NewBillController(DB *gorm.DB) BillController {
+	billManager, err := manager.NewBillManager(DB)
+	if err != nil {
+		return BillController{}
+	}
+
+	config, err := initializers.LoadConfig(".")
+	if err != nil {
+		return BillController{}
+	}
+
+	return BillController{DB, config, billManager}
+}
+
+// UploadImage godoc
+//
+//	@Summary		Upload image
+//	@Description	Upload image
+//	@Tags			bills
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			image	formData	file	true	"image"
+//	@Success		200	{object}	helpers.ErrResponse
+//	@Failure		400	{object}	helpers.ErrResponse
+//	@Failure		404	{object}	helpers.ErrResponse "Page not found"
+//	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
+//	@Router			/bills/upload [post]
+func (bc BillController) UploadImage(c *gin.Context) {
+	image, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	fmt.Println("DONE FORMFILE")
+	if err := bc.BM.UploadBill(image); err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	fmt.Println("DONE UPLOADBILL")
+
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully uploaded image"})
 }
 
 // GetAllBills godoc
 //
-//	@Summary		Get all bills
-//	@Description	Get all Bills from table
-//	@Tags			bills
-//	@Produce		json
-//	@Success		200	{array}		models.Bill
-//	@Failure		404	{object}	helpers.ErrResponse "Page not found"
-//	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
-//	@Router			/bills [get]
+//		@Summary		Get all bills
+//		@Description	Get all Bills from table
+//		@Tags			bills
+//		@Produce		json
+//		@Success		200	{array}		models.Bill
+//		@Failure		404	{object}	helpers.ErrResponse "Page not found"
+//	 @Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
+//		@Router			/bills [get]
 func (bc BillController) GetAll(c *gin.Context) {
 	var obj []models.Bill
 	result := bc.DB.Where("deleted_at IS NULL").Preload("BillData").Preload("BillOwner").Find(&obj)
@@ -83,36 +123,10 @@ func (bc BillController) GetByID(c *gin.Context) {
 //	@Router			/bills [post]
 func (bc BillController) CreateAsync(c *gin.Context) {
 	var obj models.Bill
-	var imageName string
-
-	billManager := manager.NewBillManager(bc.DB, bc.Config)
-
-	image, err := c.FormFile("image")
-
-	if image != nil {
-		imageName, err = billManager.SaveImage(image)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
-			return
-		}
-	}
 
 	if err := c.ShouldBindJSON(&obj); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
-	}
-
-	if obj.ID == "" {
-		id, err := gonanoid.Generate("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 8)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
-			return
-		}
-		obj.ID = id
-	}
-
-	if image != nil {
-		obj.RawImage = imageName
 	}
 
 	result := bc.DB.Create(&obj)
