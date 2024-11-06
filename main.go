@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pt-sinan-akbar/controllers"
 	_ "github.com/pt-sinan-akbar/docs"
-	"github.com/pt-sinan-akbar/helper"
+	"github.com/pt-sinan-akbar/helpers"
 	"github.com/pt-sinan-akbar/initializers"
 	"github.com/pt-sinan-akbar/manager"
 	"github.com/pt-sinan-akbar/routes"
@@ -71,7 +71,7 @@ func init() {
 	BillManager = manager.NewBillManager(initializers.DB, &BillItemManager, &BillDataManager)
 
 	//Controllers
-	BillController = controllers.NewBillController(initializers.DB, &BillManager)
+	BillController = controllers.NewBillController(&BillManager)
 	BillOwnerController = controllers.NewBillOwnerController(initializers.DB)
 	BillMemberController = controllers.NewBillMemberController(initializers.DB)
 	BillDataController = controllers.NewBillDataController(initializers.DB, &BillDataManager)
@@ -108,7 +108,7 @@ func main() {
 		})
 	})
 	server.GET("/generate-image", func(c *gin.Context) {
-		bytes, err := helper.GenerateInitialsImage("Sinan")
+		bytes, err := helpers.GenerateInitialsImage("Sinan")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate image",
 				"message": err.Error()})
@@ -120,5 +120,5 @@ func main() {
 	})
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	log.Fatal(server.Run(":" + initializers.ConfigSetting.ServerPort))
+	log.Fatal(server.Run("127.0.0.1:" + initializers.ConfigSetting.ServerPort))
 }
