@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pt-sinan-akbar/controllers"
 	_ "github.com/pt-sinan-akbar/docs"
-	"github.com/pt-sinan-akbar/helper"
+	"github.com/pt-sinan-akbar/helpers"
 	"github.com/pt-sinan-akbar/initializers"
 	"github.com/pt-sinan-akbar/manager"
 	"github.com/pt-sinan-akbar/routes"
@@ -99,13 +99,9 @@ func main() {
 	BillDataRouterController.BillDataRouter(router)
 	BillItemRouterController.BillItemRouter(router)
 
-	server.GET("/test", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello World",
-		})
-	})
+	//Ini buat apaan
 	server.GET("/generate-image", func(c *gin.Context) {
-		bytes, err := helper.GenerateInitialsImage("Sinan")
+		bytes, err := helpers.GenerateInitialsImage("Sinan")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate image",
 				"message": err.Error()})

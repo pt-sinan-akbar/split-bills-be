@@ -3,7 +3,7 @@ package manager
 import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"github.com/pt-sinan-akbar/helper"
+	"github.com/pt-sinan-akbar/helpers"
 	"github.com/pt-sinan-akbar/initializers"
 	"gorm.io/gorm"
 	"io"
@@ -77,7 +77,7 @@ func (bm BillManager) UploadImageToPython(image *multipart.FileHeader, id string
 
 func (bm BillManager) UploadBill(image *multipart.FileHeader) error {
 	// generate id
-	id, err := helper.GenerateID()
+	id, err := helpers.GenerateID()
 	if err != nil {
 		return err
 	}
