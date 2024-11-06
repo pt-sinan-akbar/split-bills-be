@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"github.com/pt-sinan-akbar/manager"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,23 +13,25 @@ import (
 )
 
 type BillItemController struct {
-	DB *gorm.DB
+	DB  *gorm.DB
+	BIM *manager.BillItemManager
 }
 
-func NewBillItemController(DB *gorm.DB) BillItemController {
-	return BillItemController{DB}
+func NewBillItemController(DB *gorm.DB, billItemManager *manager.BillItemManager) BillItemController {
+	return BillItemController{DB, billItemManager}
 }
 
 // GetAllBillItem godoc
-//	@Summary		Get all Bill Item
-//	@Description	Get all Bill Item
-//	@Tags			billitems
-//	@Produce		json
-//  @Success		200	{array}		models.BillItem
-//	@Failure		404	{object}	helpers.ErrResponse "Page not found"
-//	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
-//	@Router			/billitems [get]
-func (bc BillItemController) GetAll(c *gin.Context){
+//
+//		@Summary		Get all Bill Item
+//		@Description	Get all Bill Item
+//		@Tags			billitems
+//		@Produce		json
+//	 @Success		200	{array}		models.BillItem
+//		@Failure		404	{object}	helpers.ErrResponse "Page not found"
+//		@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
+//		@Router			/billitems [get]
+func (bc BillItemController) GetAll(c *gin.Context) {
 	var obj []models.BillItem
 	result := bc.DB.Where("deleted_at IS NULL").Preload("Bill").Find(&obj)
 
@@ -40,6 +44,7 @@ func (bc BillItemController) GetAll(c *gin.Context){
 }
 
 // GetBillItemById godoc
+//
 //	@Summary		Get a Bill Item by ID
 //	@Description	Get Bill Item by ID
 //	@Tags			billitems
@@ -49,17 +54,17 @@ func (bc BillItemController) GetAll(c *gin.Context){
 //	@Failure		404	{object}	helpers.ErrResponse "Page not found"
 //	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //	@Router			/billitems/{id} [get]
-func (bc BillItemController) GetByID(c *gin.Context){
-	id := c.Param("id")
-
-	var obj models.BillItem
-	result := bc.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("Bill").First(&obj)
-
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: result.Error.Error()})
+func (bc BillItemController) GetByID(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "Invalid ID"})
 		return
 	}
-
+	obj, err := bc.BIM.GetByID(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, obj)
 }
 
@@ -74,7 +79,7 @@ func (bc BillItemController) GetByID(c *gin.Context){
 // @Failure		404	{object}	helpers.ErrResponse "Page not found"
 // @Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 // @Router			/billitems [post]
-func (bc BillItemController) CreateAsync(c *gin.Context){
+func (bc BillItemController) CreateAsync(c *gin.Context) {
 	var obj models.BillItem
 
 	if err := c.ShouldBindJSON(&obj); err != nil {
@@ -102,7 +107,7 @@ func (bc BillItemController) CreateAsync(c *gin.Context){
 // @Failure	404	{object}	helpers.ErrResponse "Page not found"
 // @Failure	500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 // @Router /billitems/{id} [delete]
-func (bc BillItemController) DeleteAsync(c *gin.Context){
+func (bc BillItemController) DeleteAsync(c *gin.Context) {
 	id := c.Param("id")
 	var obj models.BillItem
 
@@ -122,6 +127,5 @@ func (bc BillItemController) DeleteAsync(c *gin.Context){
 		return
 	}
 
-	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Successfully deleted record"}) 
+	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Successfully deleted record"})
 }
-

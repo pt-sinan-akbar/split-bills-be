@@ -9,6 +9,7 @@ type BillItem struct {
 	Name      string     `gorm:"type:varchar(50)" json:"name,omitempty"`
 	Qty       int64      `gorm:"type:int" json:"qty,omitempty"`
 	Price     float64    `gorm:"type:decimal(10,2)" json:"price,omitempty"`
+	Subtotal  float64    `gorm:"type:decimal(10,2)" json:"subtotal,omitempty"`
 	Tax       float64    `gorm:"type:decimal(10,2)" json:"tax,omitempty"`
 	Service   float64    `gorm:"type:decimal(10,2)" json:"service,omitempty"`
 	Discount  float64    `gorm:"type:decimal(10,2)" json:"discount,omitempty"`

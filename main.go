@@ -53,7 +53,9 @@ var (
 	BillItemRouterController   routes.BillItemRouterController
 
 	// Manager
-	BillManager *manager.BillManager
+	BillManager     manager.BillManager
+	BillItemManager manager.BillItemManager
+	BillDataManager manager.BillDataManager
 )
 
 func init() {
@@ -63,12 +65,17 @@ func init() {
 	}
 
 	initializers.ConnectDB(&config)
+	// Managers
+	BillItemManager = manager.NewBillItemManager(initializers.DB)
+	BillDataManager = manager.NewBillDataManager(initializers.DB)
+	BillManager = manager.NewBillManager(initializers.DB, &BillItemManager, &BillDataManager)
+
 	//Controllers
-	BillController = controllers.NewBillController(initializers.DB)
+	BillController = controllers.NewBillController(&BillManager)
 	BillOwnerController = controllers.NewBillOwnerController(initializers.DB)
 	BillMemberController = controllers.NewBillMemberController(initializers.DB)
-	BillDataController = controllers.NewBillDataController(initializers.DB)
-	BillItemController = controllers.NewBillItemController(initializers.DB)
+	BillDataController = controllers.NewBillDataController(initializers.DB, &BillDataManager)
+	BillItemController = controllers.NewBillItemController(initializers.DB, &BillItemManager)
 
 	//Routes
 	BillRouterController = routes.NewBillRouterController(BillController)
@@ -81,10 +88,6 @@ func init() {
 }
 
 func main() {
-	config, err := initializers.LoadConfig(".")
-	if err != nil {
-		log.Fatal("? Could not load environment variables", err)
-	}
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowAllOrigins = true
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
@@ -113,5 +116,5 @@ func main() {
 	})
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	log.Fatal(server.Run(":" + config.ServerPort))
+	log.Fatal(server.Run("127.0.0.1:" + initializers.ConfigSetting.ServerPort))
 }
