@@ -59,8 +59,8 @@ func (bm BillManager) DeleteAsync(id string) error {
 	return nil
 }
 
-func (bm BillManager) EditAsync(bill *models.Bill) error {
-	obj, _ := bm.GetByID(bill.ID)
+func (bm BillManager) EditAsync(id string, bill *models.Bill) error {
+	obj, _ := bm.GetByID(id)
 
 	tx := bm.DB.Begin()
 	if tx.Error != nil {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/pt-sinan-akbar/models"
 	"gorm.io/gorm"
-	"math"
 	"strconv"
 )
 
@@ -21,16 +20,16 @@ func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity
 	if err != nil {
 		return item, fmt.Errorf("failed to get item: %v", err)
 	}
-	newSubtotal := math.Round(price * float64(quantity))
+	newSubtotal := price * float64(quantity)
 	var taxPercent, newTax = 0.0, 0.0
 	if item.Tax != 0 {
 		taxPercent = item.Subtotal / item.Tax
-		newTax = math.Round(newSubtotal / taxPercent)
+		newTax = newSubtotal / taxPercent
 	}
 	var servicePercent, newService = 0.0, 0.0
 	if item.Service != 0 {
 		servicePercent = item.Subtotal / item.Service
-		newService = math.Round(newSubtotal / servicePercent)
+		newService = newSubtotal / servicePercent
 	}
 	item.Subtotal = newSubtotal
 	item.Tax = newTax

@@ -142,7 +142,7 @@ func (bc BillController) EditAsync(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-	if err := bc.BM.EditAsync(&obj); err != nil {
+	if err := bc.BM.EditAsync(id, &obj); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
