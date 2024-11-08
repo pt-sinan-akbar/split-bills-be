@@ -25,66 +25,68 @@ func NewBillManager(DB *gorm.DB, BIM *BillItemManager, BDM *BillDataManager) Bil
 func (bm BillManager) GetAll() ([]models.Bill, error) {
 	var obj []models.Bill
 	result := bm.DB.Where("deleted_at IS NULL").Preload("BillData").Preload("BillOwner").Find(&obj)
-	if result.Error != nil {
-		return obj, fmt.Errorf("failed to get all bills: %v", result.Error)
-	}
-	return obj, nil
+	return obj, result.Error
 }
 
 func (bm BillManager) GetByID(id string) (models.Bill, error) {
 	var obj models.Bill
 	result := bm.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("BillData").Preload("BillOwner").First(&obj)
-	if result.Error != nil {
-		return obj, result.Error
-	}
-	return obj, nil
+	return obj, result.Error
 }
 
-func (bm BillManager) CreateAsync(bill *models.Bill) error {
+func (bm BillManager) CreateAsync(bill models.Bill) error {
 	result := bm.DB.Create(&bill)
-	if result.Error != nil {
-		return fmt.Errorf("failed to create bill: %v", result.Error)
-	}
-	return nil
+	return result.Error
 }
 
 func (bm BillManager) DeleteAsync(id string) error {
-	obj, _ := bm.GetByID(id)
+	tx := bm.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	obj, err := bm.GetByID(id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	obj.UpdatedAt = time.Now()
 	obj.DeletedAt = &obj.UpdatedAt
-	result := bm.DB.Save(&obj)
-	if result.Error != nil {
-		return fmt.Errorf("failed to delete bill: %v", result.Error)
+
+	if err := tx.Save(&obj).Error; err != nil {
+		tx.Rollback()
+		return err
 	}
-	return nil
+
+	return tx.Commit().Error
 }
 
 func (bm BillManager) EditAsync(id string, bill *models.Bill) error {
-	obj, _ := bm.GetByID(id)
-
 	tx := bm.DB.Begin()
 	if tx.Error != nil {
-		return fmt.Errorf("failed to begin transaction: %v", tx.Error)
+		return tx.Error
+	}
+
+	obj, err := bm.GetByID(id)
+	if err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	updateData := map[string]interface{}{
-		"Name":        bill.Name,
-		"RawImage":    bill.RawImage,
-		"ID":          bill.ID,
-		"BillOwnerId": bill.BillOwnerId,
-		"UpdatedAt":   time.Now(),
+		"bill_owner_id": bill.BillOwnerId,
+		"name":          bill.Name,
+		"raw_image":     bill.RawImage,
+		"updated_at":    time.Now(),
 	}
 
 	if err := tx.Model(&obj).Updates(updateData).Error; err != nil {
 		tx.Rollback()
-		return fmt.Errorf("failed to update bill: %v", err)
+		return tx.Error
 	}
 
-	if err := tx.Commit().Error; err != nil {
-		return fmt.Errorf("failed to commit transaction: %v", err)
-	}
-
-	return nil
+	return tx.Commit().Error
 }
 
 // Business Logic
@@ -94,7 +96,12 @@ func (bm BillManager) SaveImage(image *multipart.FileHeader, id string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open image: %v", err)
 	}
-	defer imageBytes.Close()
+	defer func(imageBytes multipart.File) {
+		err := imageBytes.Close()
+		if err != nil {
+			fmt.Println("failed to close image: ", err)
+		}
+	}(imageBytes)
 
 	fileBytes, err := io.ReadAll(imageBytes)
 	if err != nil {

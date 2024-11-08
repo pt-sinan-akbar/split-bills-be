@@ -26,46 +26,60 @@ func (bdm BillDataManager) GetByID(id int) (models.BillData, error) {
 	return obj, result.Error
 }
 
-func (bdm BillDataManager) CreateAsync(billData *models.BillData) error {
+func (bdm BillDataManager) CreateAsync(billData models.BillData) error {
 	result := bdm.DB.Create(&billData)
 	return result.Error
 }
 
 func (bdm BillDataManager) DeleteAsync(id int) error {
-	obj, _ := bdm.GetByID(id)
-	obj.UpdatedAt = time.Now()
-	obj.DeletedAt = &obj.UpdatedAt
-	result := bdm.DB.Save(&obj)
-	return result.Error
-}
-
-func (bdm BillDataManager) EditAsync(id int, obj *models.BillData) error {
-	old, _ := bdm.GetByID(id)
-
 	tx := bdm.DB.Begin()
 	if tx.Error != nil {
 		return tx.Error
 	}
 
-	updateData := map[string]interface{}{
-		"BillId":    obj.BillId,
-		"StoreName": obj.StoreName,
-		"SubTotal":  obj.SubTotal,
-		"Discount":  obj.Discount,
-		"Tax":       obj.Tax,
-		"Service":   obj.Service,
-		"Total":     obj.Total,
-		"Misc":      obj.Misc,
-		"UpdatedAt": time.Now(),
-	}
-
-	if err := tx.Model(&old).Updates(updateData).Error; err != nil {
+	obj, err := bdm.GetByID(id)
+	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	if err := tx.Commit().Error; err != nil {
+	obj.UpdatedAt = time.Now()
+	obj.DeletedAt = &obj.UpdatedAt
+
+	if err := tx.Save(&obj).Error; err != nil {
+		tx.Rollback()
 		return err
 	}
-	return nil
+
+	return tx.Commit().Error
+}
+
+func (bdm BillDataManager) EditAsync(id int, obj *models.BillData) error {
+	tx := bdm.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	oldObj, err := bdm.GetByID(id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Model(&oldObj).Updates(map[string]interface{}{
+		"bill_id":    obj.BillId,
+		"store_name": obj.StoreName,
+		"sub_total":  obj.SubTotal,
+		"discount":   obj.Discount,
+		"tax":        obj.Tax,
+		"service":    obj.Service,
+		"total":      obj.Total,
+		"misc":       obj.Misc,
+		"updated_at": time.Now(),
+	}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }

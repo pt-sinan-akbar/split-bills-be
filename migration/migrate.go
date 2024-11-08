@@ -18,13 +18,16 @@ func init() {
 }
 
 func main() {
-	initializers.DB.AutoMigrate(
+	err := initializers.DB.AutoMigrate(
 		&models.Bill{},
 		&models.BillData{},
 		&models.BillOwner{},
 		&models.BillMember{},
 		&models.BillItem{},
 	)
+	if err != nil {
+		return
+	}
 	Session := initializers.DB.Session(&gorm.Session{
 		PrepareStmt: true,
 	})

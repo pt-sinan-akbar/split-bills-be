@@ -17,6 +17,6 @@ func (brc *BillItemRouterController) BillItemRouter(rg *gin.RouterGroup) {
 	rg.GET("/billitems", brc.billitemController.GetAll)
 	rg.GET("/billitems/:id", brc.billitemController.GetByID)
 	rg.POST("/billitems", brc.billitemController.CreateAsync)
-	// rg.PUT("/billitems/:id", brc.billitemController.EditAsync)
+	rg.PUT("/billitems/:id", brc.billitemController.EditAsync)
 	rg.DELETE("/billitems/:id", brc.billitemController.DeleteAsync)
 }

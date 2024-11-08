@@ -5,6 +5,7 @@ import (
 	"github.com/pt-sinan-akbar/models"
 	"gorm.io/gorm"
 	"strconv"
+	"time"
 )
 
 type BillItemManager struct {
@@ -44,9 +45,6 @@ func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity
 	if err != nil {
 		return item, fmt.Errorf("internal server error")
 	}
-	if err != nil {
-		return item, fmt.Errorf("failed to update data: %v", err)
-	}
 	return item, err
 }
 
@@ -54,4 +52,68 @@ func (bim BillItemManager) GetByID(id int) (models.BillItem, error) {
 	var obj models.BillItem
 	result := bim.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("Bill").First(&obj)
 	return obj, result.Error
+}
+
+func (bim BillItemManager) GetAll() ([]models.BillItem, error) {
+	var obj []models.BillItem
+	result := bim.DB.Where("deleted_at IS NULL").Preload("Bill").Find(&obj)
+	return obj, result.Error
+}
+
+func (bim BillItemManager) CreateAsync(billItem models.BillItem) error {
+	result := bim.DB.Create(&billItem)
+	return result.Error
+}
+
+func (bim BillItemManager) DeleteAsync(id int) error {
+	tx := bim.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	obj, err := bim.GetByID(id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	obj.UpdatedAt = time.Now()
+	obj.DeletedAt = &obj.UpdatedAt
+
+	if err := tx.Save(&obj).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
+func (bim BillItemManager) EditAsync(id int, billItem models.BillItem) error {
+	tx := bim.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	oldObj, err := bim.GetByID(id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Model(&oldObj).Updates(map[string]interface{}{
+		"bill_id":    billItem.BillId,
+		"name":       billItem.Name,
+		"qty":        billItem.Qty,
+		"price":      billItem.Price,
+		"subtotal":   billItem.Subtotal,
+		"tax":        billItem.Tax,
+		"service":    billItem.Service,
+		"discount":   billItem.Discount,
+		"updated_at": time.Now(),
+	}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }

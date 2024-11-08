@@ -28,7 +28,7 @@ func NewBillController(billManager *manager.BillManager) BillController {
 //		@Produce		json
 //		@Success		200	{array}		models.Bill
 //		@Failure		404	{object}	helpers.ErrResponse "Page not found"
-//	 @Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
+//	 	@Failure		500	{object}	helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 //		@Router			/bills [get]
 func (bc BillController) GetAll(c *gin.Context) {
 	obj, err := bc.BM.GetAll()
@@ -76,13 +76,12 @@ func (bc BillController) GetByID(c *gin.Context) {
 //	@Router			/bills [post]
 func (bc BillController) CreateAsync(c *gin.Context) {
 	var obj models.Bill
-
 	if err := c.ShouldBindJSON(&obj); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	if err := bc.BM.CreateAsync(&obj); err != nil {
+	if err := bc.BM.CreateAsync(obj); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
@@ -131,22 +130,19 @@ func (bc BillController) DeleteAsync(c *gin.Context) {
 //	@Router			/bills/{id} [put]
 func (bc BillController) EditAsync(c *gin.Context) {
 	id := c.Param("id")
-	var obj models.Bill
 
-	obj, err := bc.BM.GetByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: err.Error()})
-		return
-	}
-	if err := c.ShouldBindJSON(&obj); err != nil {
+	var updatedObj models.Bill
+	if err := c.ShouldBindJSON(&updatedObj); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-	if err := bc.BM.EditAsync(id, &obj); err != nil {
+
+	if err := bc.BM.EditAsync(id, &updatedObj); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, obj)
+
+	c.JSON(http.StatusOK, updatedObj)
 }
 
 // Business Logic
@@ -170,12 +166,11 @@ func (bc BillController) UploadImage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-	fmt.Println("DONE FORMFILE")
+
 	if err := bc.BM.UploadBill(image); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-	fmt.Println("DONE UPLOADBILL")
 
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully uploaded image"})
 }
