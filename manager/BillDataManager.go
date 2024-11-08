@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pt-sinan-akbar/models"
 	"gorm.io/gorm"
+	"log"
 	"time"
 )
 
@@ -86,25 +87,71 @@ func (bdm BillDataManager) EditAsync(id int, obj *models.BillData) error {
 }
 
 func (bdm BillDataManager) DynamicUpdateRecalculateData(billData *models.BillData, subtotal []float64) error {
-	var newSubtotal float64
+	var subtotalAllItems float64
 	for _, v := range subtotal {
-		newSubtotal += v
+		subtotalAllItems += v
 	}
 	oldSubtotal := billData.SubTotal
+	newSubtotal := subtotalAllItems
+	oldTotal := billData.Total
+	newTotal := subtotalAllItems
 	oldTax := billData.Tax
 	oldService := billData.Service
-	oldTaxPercent := oldTax / oldSubtotal
-	oldServicePercent := oldService / oldSubtotal
-	newTax := newSubtotal * oldTaxPercent
-	newService := newSubtotal * oldServicePercent
-	newTotal := newSubtotal + newTax + newService
-	billData.SubTotal = newSubtotal
-	billData.Tax = newTax
-	billData.Service = newService
-	billData.Total = newTotal
+
+	if oldTax != 0.0 {
+		oldTaxPercent := oldTax / oldSubtotal
+		newTax := subtotalAllItems * oldTaxPercent
+		billData.Tax = newTax
+		newTotal += newTax
+	}
+	if oldService != 0.0 {
+		oldServicePercent := oldService / oldSubtotal
+		newService := subtotalAllItems * oldServicePercent
+		billData.Service = newService
+		newTotal += newService
+	}
+	if oldSubtotal != newSubtotal {
+		billData.SubTotal = newSubtotal
+	}
+	if oldTotal != newTotal {
+		billData.Total = newTotal
+	} else {
+		log.Println("wtf no changes")
+	}
 	if err := bdm.EditAsync(int(billData.ID), billData); err != nil {
 		return err
 	}
-	fmt.Println(newSubtotal, newTax, newService, newTotal)
 	return nil
+}
+
+func (bdm BillDataManager) DynamicUpdateData(data *models.BillData, newTax float64, newService float64) (float64, float64, error) {
+	if data.Tax == newTax && data.Service == newService {
+		return 0.0, 0.0, fmt.Errorf("no changes")
+	}
+	taxPercent, servicePercent := 0.0, 0.0
+	if data.Tax != 0.0 {
+		taxPercent = data.Tax / data.SubTotal
+	}
+	if data.Service != 0.0 {
+		servicePercent = data.Service / data.SubTotal
+	}
+	if newTax != 0.0 {
+		taxPercent = newTax / data.SubTotal
+	} else {
+		newTax = 0.0
+		taxPercent = 0.0
+	}
+	if newService != 0.0 {
+		servicePercent = newService / data.SubTotal
+	} else {
+		newService = 0.0
+		servicePercent = 0.0
+	}
+	data.Tax = newTax
+	data.Service = newService
+	data.Total = data.SubTotal + newTax + newService
+	if err := bdm.EditAsync(int(data.ID), data); err != nil {
+		return taxPercent, servicePercent, err
+	}
+	return taxPercent, servicePercent, nil
 }

@@ -2,7 +2,6 @@ package manager
 
 import (
 	"fmt"
-	"github.com/pt-sinan-akbar/dto"
 	"github.com/pt-sinan-akbar/helpers"
 	"github.com/pt-sinan-akbar/models"
 	"gorm.io/gorm"
@@ -165,14 +164,14 @@ func (bm BillManager) UploadBill(image *multipart.FileHeader) error {
 	return nil
 }
 
-func (bm BillManager) DynamicUpdateItem(req dto.DynamicUpdateRequest) error {
-	err := bm.BIM.DynamicUpdateItem(req.Item.Id, req.Item.Price, req.Item.Quantity)
-	if err != nil {
-		return fmt.Errorf("failed to update item: %v", err)
-	}
-	bill, err := bm.GetByID(req.BillId)
+func (bm BillManager) DynamicUpdateItem(billId string, itemId int, price float64, quantity int) error {
+	bill, err := bm.GetByID(billId)
 	if err != nil {
 		return fmt.Errorf("failed to get bill: %v", err)
+	}
+	err = bm.BIM.DynamicUpdateItem(itemId, price, quantity)
+	if err != nil {
+		return fmt.Errorf("failed to update item: %v", err)
 	}
 	var itemsSubtotal []float64
 	for _, item := range bill.BillItem {
@@ -180,7 +179,25 @@ func (bm BillManager) DynamicUpdateItem(req dto.DynamicUpdateRequest) error {
 	}
 	err = bm.BDM.DynamicUpdateRecalculateData(bill.BillData, itemsSubtotal)
 	if err != nil {
-		return fmt.Errorf("failed to recalculate data: %v", err)
+		return fmt.Errorf("failed to update data: %v", err)
+	}
+	return nil
+}
+
+func (bm BillManager) DynamicUpdateData(id string, tax float64, service float64) error {
+	bill, err := bm.GetByID(id)
+	if err != nil {
+		return fmt.Errorf("failed to get bill: %v", err)
+	}
+	taxPercent, servicePercent, err := bm.BDM.DynamicUpdateData(bill.BillData, tax, service)
+	if err != nil {
+		return fmt.Errorf("failed to update data: %v", err)
+	}
+	for _, item := range bill.BillItem {
+		err = bm.BIM.DynamicUpdateRecalculateItem(item, taxPercent, servicePercent)
+		if err != nil {
+			return fmt.Errorf("failed to update item: %v", err)
+		}
 	}
 	return nil
 }

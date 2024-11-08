@@ -20,6 +20,9 @@ func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity
 	if err != nil {
 		return fmt.Errorf("failed to get item: %v", err)
 	}
+	if item.Price == price && item.Qty == int64(quantity) {
+		return fmt.Errorf("no changes detected")
+	}
 	newSubtotal := price * float64(quantity)
 	var taxPercent, newTax = 0.0, 0.0
 	if item.Tax != 0 {
@@ -36,7 +39,6 @@ func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity
 	item.Subtotal = newSubtotal
 	item.Tax = newTax
 	item.Service = newService
-	fmt.Println(int64(quantity), price, newSubtotal, newTax, newService)
 
 	err = bim.EditAsync(itemId, item)
 	if err != nil {
@@ -117,4 +119,22 @@ func (bim BillItemManager) EditAsync(id int, updateObj models.BillItem) error {
 	}
 
 	return tx.Commit().Error
+}
+
+func (bim BillItemManager) DynamicUpdateRecalculateItem(item models.BillItem, taxPercent float64, servicePercent float64) error {
+	if taxPercent != 0 {
+		item.Tax = item.Subtotal * taxPercent
+	} else {
+		item.Tax = 0
+	}
+	if servicePercent != 0 {
+		item.Service = item.Subtotal * servicePercent
+	} else {
+		item.Service = 0
+	}
+	err := bim.EditAsync(int(item.ID), item)
+	if err != nil {
+		return fmt.Errorf("id %v, error: %v", item.ID, err)
+	}
+	return nil
 }

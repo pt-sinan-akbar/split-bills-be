@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pt-sinan-akbar/dto"
 	"github.com/pt-sinan-akbar/helpers"
@@ -182,26 +181,30 @@ func (bc BillController) DynamicUpdate(c *gin.Context) {
 		return
 	}
 	if req.BillId == "" {
-		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "what is the bill la"})
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "plz give me bill id onii-chan :3"})
+		return
+	}
+	// deny request with all values filled
+	if req.Tax != 0 && req.Service != 0 && req.Item.Id != 0 && req.Item.Quantity != 0 {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "wtf too many values"})
 		return
 	}
 	// update item
-	if req.Item.Id != 0 && req.Item.Price != 0 && req.Item.Quantity != 0 {
-		err := bc.BM.DynamicUpdateItem(req)
+	if req.Item.Id != 0 && req.Item.Quantity != 0 {
+		err := bc.BM.DynamicUpdateItem(req.BillId, req.Item.Id, req.Item.Price, req.Item.Quantity)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, helpers.ErrResponse{Message: "item updated"})
+		c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Item successfully updated"})
 		return
 	}
-	// update tax/service
-	if req.Tax != 0 && req.Service != 0 {
-		fmt.Println("update tax/service")
-		c.JSON(http.StatusOK, helpers.ErrResponse{Message: "tax/service updated"})
+	// update tax/service, btw these can be zero so no validation
+	err := bc.BM.DynamicUpdateData(req.BillId, req.Tax, req.Service)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-	// stupid request
-	c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "check your request"})
+	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Tax/Service successfully updated"})
 	return
 }
