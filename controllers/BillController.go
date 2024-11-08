@@ -187,7 +187,11 @@ func (bc BillController) DynamicUpdate(c *gin.Context) {
 	}
 	// update item
 	if req.Item.Id != 0 && req.Item.Price != 0 && req.Item.Quantity != 0 {
-		fmt.Println("update item")
+		err := bc.BM.DynamicUpdateItem(req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+			return
+		}
 		c.JSON(http.StatusOK, helpers.ErrResponse{Message: "item updated"})
 		return
 	}

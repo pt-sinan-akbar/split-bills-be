@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/pt-sinan-akbar/models"
 	"gorm.io/gorm"
-	"strconv"
 	"time"
 )
 
@@ -16,10 +15,10 @@ func NewBillItemManager(DB *gorm.DB) BillItemManager {
 	return BillItemManager{DB}
 }
 
-func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity int64) (models.BillItem, error) {
+func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity int) error {
 	item, err := bim.GetByID(itemId)
 	if err != nil {
-		return item, fmt.Errorf("failed to get item: %v", err)
+		return fmt.Errorf("failed to get item: %v", err)
 	}
 	newSubtotal := price * float64(quantity)
 	var taxPercent, newTax = 0.0, 0.0
@@ -32,20 +31,18 @@ func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity
 		servicePercent = item.Subtotal / item.Service
 		newService = newSubtotal / servicePercent
 	}
+	item.Qty = int64(quantity)
+	item.Price = price
 	item.Subtotal = newSubtotal
 	item.Tax = newTax
 	item.Service = newService
-	fmt.Println(newSubtotal, newTax, newService)
+	fmt.Println(int64(quantity), price, newSubtotal, newTax, newService)
 
-	//result := bim.DB.Save(&item)
-	//if result.Error != nil {
-	//	return fmt.Errorf("failed to update item: %v", result.Error)
-	//}
-	_, err = strconv.Atoi(item.BillId)
+	err = bim.EditAsync(itemId, item)
 	if err != nil {
-		return item, fmt.Errorf("internal server error")
+		return fmt.Errorf("failed to update item: %v", err)
 	}
-	return item, err
+	return nil
 }
 
 func (bim BillItemManager) GetByID(id int) (models.BillItem, error) {
@@ -88,29 +85,28 @@ func (bim BillItemManager) DeleteAsync(id int) error {
 	return tx.Commit().Error
 }
 
-func (bim BillItemManager) EditAsync(id int, billItem models.BillItem) error {
+func (bim BillItemManager) EditAsync(id int, updateObj models.BillItem) error {
 	tx := bim.DB.Begin()
 	if tx.Error != nil {
 		return tx.Error
 	}
 
-	oldObj, err := bim.GetByID(id)
+	obj, err := bim.GetByID(id)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	if err := tx.Model(&oldObj).Updates(map[string]interface{}{
-		"bill_id":    billItem.BillId,
-		"name":       billItem.Name,
-		"qty":        billItem.Qty,
-		"price":      billItem.Price,
-		"subtotal":   billItem.Subtotal,
-		"tax":        billItem.Tax,
-		"service":    billItem.Service,
-		"discount":   billItem.Discount,
-		"updated_at": time.Now(),
-	}).Error; err != nil {
+	obj.Name = updateObj.Name
+	obj.Qty = updateObj.Qty
+	obj.Price = updateObj.Price
+	obj.Subtotal = updateObj.Subtotal
+	obj.Tax = updateObj.Tax
+	obj.Service = updateObj.Service
+	obj.Discount = updateObj.Discount
+	obj.UpdatedAt = time.Now()
+
+	if err := tx.Save(&obj).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

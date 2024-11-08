@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"fmt"
 	"github.com/pt-sinan-akbar/models"
 	"gorm.io/gorm"
 	"time"
@@ -82,4 +83,28 @@ func (bdm BillDataManager) EditAsync(id int, obj *models.BillData) error {
 	}
 
 	return tx.Commit().Error
+}
+
+func (bdm BillDataManager) DynamicUpdateRecalculateData(billData *models.BillData, subtotal []float64) error {
+	var newSubtotal float64
+	for _, v := range subtotal {
+		newSubtotal += v
+	}
+	oldSubtotal := billData.SubTotal
+	oldTax := billData.Tax
+	oldService := billData.Service
+	oldTaxPercent := oldTax / oldSubtotal
+	oldServicePercent := oldService / oldSubtotal
+	newTax := newSubtotal * oldTaxPercent
+	newService := newSubtotal * oldServicePercent
+	newTotal := newSubtotal + newTax + newService
+	billData.SubTotal = newSubtotal
+	billData.Tax = newTax
+	billData.Service = newService
+	billData.Total = newTotal
+	if err := bdm.EditAsync(int(billData.ID), billData); err != nil {
+		return err
+	}
+	fmt.Println(newSubtotal, newTax, newService, newTotal)
+	return nil
 }

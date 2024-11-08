@@ -14,7 +14,9 @@ type Bill struct {
 	DeletedAt   *time.Time `gorm:"type:timestamp" json:"-"`
 
 	// has many BillData
-	BillData []BillData `gorm:"foreignkey:BillId" json:"bill_data,omitempty"`
+	BillData *BillData `gorm:"foreignkey:BillId" json:"bill_data,omitempty"`
 	// belongs to a BillOwner
 	BillOwner *BillOwner `gorm:"foreignKey:BillOwnerId" json:"bill_owner,omitempty"`
+	// has many BillItem
+	BillItem []BillItem `gorm:"foreignkey:BillId" json:"bill_item,omitempty"`
 }

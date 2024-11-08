@@ -17,7 +17,7 @@ type BillItem struct {
 	UpdatedAt time.Time  `gorm:"type:timestamp" json:"updated_at"`
 	DeletedAt *time.Time `gorm:"type:timestamp" json:"-"`
 
-	Bill Bill `gorm:"foreignKey:BillId" json:"bill,omitempty"`
+	Bill *Bill `gorm:"foreignKey:BillId" json:"bill,omitempty"`
 	// many to many
 	BillMember []*BillMember `gorm:"many2many:bill_member_items;" json:"bill_member,omitempty"`
 }

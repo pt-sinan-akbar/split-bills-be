@@ -17,5 +17,5 @@ type BillData struct {
 	UpdatedAt time.Time  `gorm:"type:timestamp" json:"updated_at,omitempty"`
 	DeletedAt *time.Time `gorm:"type:timestamp" json:"-"`
 
-	Bill Bill `gorm:"foreignKey:BillId " json:"bill,omitempty"`
+	Bill *Bill `gorm:"foreignKey:BillId " json:"bill,omitempty"`
 }
