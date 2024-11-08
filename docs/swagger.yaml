@@ -8,9 +8,13 @@ definitions:
   models.Bill:
     properties:
       bill_data:
+        allOf:
+        - $ref: '#/definitions/models.BillData'
         description: has many BillData
+      bill_item:
+        description: has many BillItem
         items:
-          $ref: '#/definitions/models.BillData'
+          $ref: '#/definitions/models.BillItem'
         type: array
       bill_owner:
         allOf:
@@ -83,6 +87,8 @@ definitions:
         type: integer
       service:
         type: number
+      subtotal:
+        type: number
       tax:
         type: number
       updated_at:
@@ -108,6 +114,10 @@ definitions:
         type: string
       price_owe:
         type: number
+      profile_picture:
+        items:
+          type: integer
+        type: array
       updated_at:
         type: string
     type: object
@@ -187,8 +197,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/models.BillData'
         "404":
@@ -384,9 +394,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/models.BillItem'
-            type: array
+            $ref: '#/definitions/models.BillItem'
         "404":
           description: Page not found
           schema:
@@ -396,6 +404,40 @@ paths:
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Get a Bill Item by ID
+      tags:
+      - billitems
+    put:
+      consumes:
+      - application/json
+      description: Edit a Bill Item
+      parameters:
+      - description: data
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.BillItem'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BillItem'
+        "404":
+          description: Page not found
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: 'Internal Server Error: Server failed to process the request'
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Edit a Bill Item
       tags:
       - billitems
   /billmembers:

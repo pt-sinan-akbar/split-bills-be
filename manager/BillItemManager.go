@@ -97,14 +97,19 @@ func (bim BillItemManager) EditAsync(id int, updateObj models.BillItem) error {
 		return err
 	}
 
-	obj.Name = updateObj.Name
-	obj.Qty = updateObj.Qty
-	obj.Price = updateObj.Price
-	obj.Subtotal = updateObj.Subtotal
-	obj.Tax = updateObj.Tax
-	obj.Service = updateObj.Service
-	obj.Discount = updateObj.Discount
-	obj.UpdatedAt = time.Now()
+	if err := tx.Model(&obj).Updates(map[string]interface{}{
+		"name":       updateObj.Name,
+		"qty":        updateObj.Qty,
+		"price":      updateObj.Price,
+		"subtotal":   updateObj.Subtotal,
+		"tax":        updateObj.Tax,
+		"service":    updateObj.Service,
+		"discount":   updateObj.Discount,
+		"updated_at": time.Now(),
+	}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
 
 	if err := tx.Save(&obj).Error; err != nil {
 		tx.Rollback()

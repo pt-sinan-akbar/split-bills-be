@@ -36,6 +36,11 @@ func (bm BillManager) GetByID(id string) (models.Bill, error) {
 }
 
 func (bm BillManager) CreateAsync(bill models.Bill) error {
+	generatedId, err := helpers.GenerateID()
+	if err != nil {
+		return fmt.Errorf("failed to generate id: %v", err)
+	}
+	bill.ID = generatedId
 	result := bm.DB.Create(&bill)
 	return result.Error
 }
