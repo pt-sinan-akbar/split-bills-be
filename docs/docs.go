@@ -82,8 +82,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/models.BillData"
                         }
@@ -339,10 +339,58 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.BillItem"
-                            }
+                            "$ref": "#/definitions/models.BillItem"
+                        }
+                    },
+                    "404": {
+                        "description": "Page not found",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Server failed to process the request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Edit a Bill Item",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billitems"
+                ],
+                "summary": "Edit a Bill Item",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "data",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BillItem"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BillItem"
                         }
                     },
                     "404": {
@@ -1106,9 +1154,17 @@ const docTemplate = `{
             "properties": {
                 "bill_data": {
                     "description": "has many BillData",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.BillData"
+                        }
+                    ]
+                },
+                "bill_item": {
+                    "description": "has many BillItem",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.BillData"
+                        "$ref": "#/definitions/models.BillItem"
                     }
                 },
                 "bill_owner": {
@@ -1219,6 +1275,9 @@ const docTemplate = `{
                 "service": {
                     "type": "number"
                 },
+                "subtotal": {
+                    "type": "number"
+                },
                 "tax": {
                     "type": "number"
                 },
@@ -1255,6 +1314,12 @@ const docTemplate = `{
                 },
                 "price_owe": {
                     "type": "number"
+                },
+                "profile_picture": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "updated_at": {
                     "type": "string"
