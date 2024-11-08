@@ -13,7 +13,7 @@ func NewBillDataRouterController(bc controllers.BillDataController) BillDataRout
 	return BillDataRouterController{bc}
 }
 
-func (brc *BillDataRouterController) BillDataRouter(rg *gin.RouterGroup){
+func (brc *BillDataRouterController) BillDataRouter(rg *gin.RouterGroup) {
 	rg.GET("/billdatas", brc.billdataController.GetAll)
 	rg.GET("/billdatas/:id", brc.billdataController.GetByID)
 	rg.POST("/billdatas", brc.billdataController.CreateAsync)

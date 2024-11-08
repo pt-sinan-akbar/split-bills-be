@@ -67,21 +67,18 @@ func (bc BillDataController) GetByID(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param data body models.BillData true "data"
-// @Success 200 {object} models.BillData
+// @Success 201 {object} models.BillData
 // @Failure 404 {object} helpers.ErrResponse "Page not found"
 // @Failure 500 {object} helpers.ErrResponse "Internal Server Error: Server failed to process the request"
 // @Router /billdatas [post]
 func (bc BillDataController) CreateAsync(c *gin.Context) {
 	var obj models.BillData
-
 	if err := c.ShouldBindJSON(&obj); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	err := bc.BDM.CreateAsync(&obj)
-
-	if err != nil {
+	if err := bc.BDM.CreateAsync(obj); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
@@ -103,12 +100,6 @@ func (bc BillDataController) DeleteAsync(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
-		return
-	}
-
-	_, err = bc.BDM.GetByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
@@ -139,22 +130,16 @@ func (bc BillDataController) EditAsync(c *gin.Context) {
 		return
 	}
 
-	var obj models.BillData
-	obj, err = bc.BDM.GetByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, helpers.ErrResponse{Message: err.Error()})
-		return
-	}
-
-	if err := c.ShouldBindJSON(&obj); err != nil {
+	var updatedObj models.BillData
+	if err := c.ShouldBindJSON(&updatedObj); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	if err := bc.BDM.EditAsync(id, &obj); err != nil {
+	if err := bc.BDM.EditAsync(id, &updatedObj); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, obj)
+	c.JSON(http.StatusOK, updatedObj)
 }

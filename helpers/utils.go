@@ -27,7 +27,7 @@ func GenerateID() (string, error) {
 
 func GenerateInitialsImage(name string) ([]byte, error) {
 	const S = 256
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	bgColor := color.RGBA{
 		R: 138,
 		G: 206,
@@ -41,7 +41,7 @@ func GenerateInitialsImage(name string) ([]byte, error) {
 	dc.SetRGB(1, 1, 1)
 
 	//initial := string(name[0])
-	dc.DrawStringAnchored("brat", S/2, S/2, 0.5, 0.5)
+	dc.DrawStringAnchored(name, S/2, S/2, 0.5, 0.5)
 	var buf bytes.Buffer
 	err := png.Encode(&buf, dc.Image())
 	if err != nil {

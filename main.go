@@ -53,9 +53,11 @@ var (
 	BillItemRouterController   routes.BillItemRouterController
 
 	// Manager
-	BillManager     manager.BillManager
-	BillItemManager manager.BillItemManager
-	BillDataManager manager.BillDataManager
+	BillManager       manager.BillManager
+	BillItemManager   manager.BillItemManager
+	BillDataManager   manager.BillDataManager
+	BillMemberManager manager.BillMemberManager
+	BillOwnerManager  manager.BillOwnerManager
 )
 
 func init() {
@@ -69,13 +71,15 @@ func init() {
 	BillItemManager = manager.NewBillItemManager(initializers.DB)
 	BillDataManager = manager.NewBillDataManager(initializers.DB)
 	BillManager = manager.NewBillManager(initializers.DB, &BillItemManager, &BillDataManager)
+	BillMemberManager = manager.NewBillMemberManager(initializers.DB)
+	BillOwnerManager = manager.NewBillOwnerManager(initializers.DB)
 
 	//Controllers
 	BillController = controllers.NewBillController(&BillManager)
-	BillOwnerController = controllers.NewBillOwnerController(initializers.DB)
-	BillMemberController = controllers.NewBillMemberController(initializers.DB)
-	BillDataController = controllers.NewBillDataController(initializers.DB, &BillDataManager)
-	BillItemController = controllers.NewBillItemController(initializers.DB, &BillItemManager)
+	BillOwnerController = controllers.NewBillOwnerController(&BillOwnerManager)
+	BillMemberController = controllers.NewBillMemberController(&BillMemberManager)
+	BillDataController = controllers.NewBillDataController(&BillDataManager)
+	BillItemController = controllers.NewBillItemController(&BillItemManager)
 
 	//Routes
 	BillRouterController = routes.NewBillRouterController(BillController)
@@ -112,7 +116,10 @@ func main() {
 		}
 
 		c.Header("Content-Type", "image/png")
-		c.Writer.Write(bytes)
+		_, err = c.Writer.Write(bytes)
+		if err != nil {
+			return
+		}
 	})
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
