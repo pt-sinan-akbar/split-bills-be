@@ -189,6 +189,11 @@ func (bc BillController) DynamicUpdate(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "wtf too many values"})
 		return
 	}
+	// deny request with negative values
+	if req.Tax < 0 || req.Service < 0 || req.Item.Price < 0 || req.Item.Quantity < 0 {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "no negative values, ok?"})
+		return
+	}
 	// update item
 	if req.Item.Id != 0 && req.Item.Quantity != 0 {
 		err := bc.BM.DynamicUpdateItem(req.BillId, req.Item.Id, req.Item.Price, req.Item.Quantity)

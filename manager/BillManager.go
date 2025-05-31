@@ -173,9 +173,9 @@ func (bm BillManager) DynamicUpdateItem(billId string, itemId int, price float64
 	if err != nil {
 		return fmt.Errorf("failed to update item: %v", err)
 	}
-	var itemsSubtotal []float64
+	itemsSubtotal := 0.0
 	for _, item := range bill.BillItem {
-		itemsSubtotal = append(itemsSubtotal, item.Subtotal)
+		itemsSubtotal += item.Subtotal
 	}
 	err = bm.BDM.DynamicUpdateRecalculateData(bill.BillData, itemsSubtotal)
 	if err != nil {

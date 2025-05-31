@@ -3,6 +3,7 @@ package dto
 type DynamicUpdateRequest struct {
 	BillId string `json:"bill_id"`
 	Item   struct {
+		// TODO: allow name update too
 		Id       int     `json:"id"`
 		Price    float64 `json:"price"`
 		Quantity int     `json:"quantity"`

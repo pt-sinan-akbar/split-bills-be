@@ -86,27 +86,22 @@ func (bdm BillDataManager) EditAsync(id int, obj *models.BillData) error {
 	return tx.Commit().Error
 }
 
-func (bdm BillDataManager) DynamicUpdateRecalculateData(billData *models.BillData, subtotal []float64) error {
-	var subtotalAllItems float64
-	for _, v := range subtotal {
-		subtotalAllItems += v
-	}
+func (bdm BillDataManager) DynamicUpdateRecalculateData(billData *models.BillData, newSubtotal float64) error {
 	oldSubtotal := billData.SubTotal
-	newSubtotal := subtotalAllItems
 	oldTotal := billData.Total
-	newTotal := subtotalAllItems
+	newTotal := newSubtotal
 	oldTax := billData.Tax
 	oldService := billData.Service
 
 	if oldTax != 0.0 {
 		oldTaxPercent := oldTax / oldSubtotal
-		newTax := subtotalAllItems * oldTaxPercent
+		newTax := newSubtotal * oldTaxPercent
 		billData.Tax = newTax
 		newTotal += newTax
 	}
 	if oldService != 0.0 {
 		oldServicePercent := oldService / oldSubtotal
-		newService := subtotalAllItems * oldServicePercent
+		newService := newSubtotal * oldServicePercent
 		billData.Service = newService
 		newTotal += newService
 	}

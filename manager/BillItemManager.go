@@ -122,16 +122,9 @@ func (bim BillItemManager) EditAsync(id int, updateObj models.BillItem) error {
 }
 
 func (bim BillItemManager) DynamicUpdateRecalculateItem(item models.BillItem, taxPercent float64, servicePercent float64) error {
-	if taxPercent != 0 {
-		item.Tax = item.Subtotal * taxPercent
-	} else {
-		item.Tax = 0
-	}
-	if servicePercent != 0 {
-		item.Service = item.Subtotal * servicePercent
-	} else {
-		item.Service = 0
-	}
+	item.Tax = item.Subtotal * taxPercent
+	item.Service = item.Subtotal * servicePercent
+
 	err := bim.EditAsync(int(item.ID), item)
 	if err != nil {
 		return fmt.Errorf("id %v, error: %v", item.ID, err)
