@@ -24,6 +24,7 @@ func main() {
 		&models.BillOwner{},
 		&models.BillMember{},
 		&models.BillItem{},
+		&models.BillMemberItem{}, // terakhir kali manual sih, jadi gatau ini jalan apa ngga
 	)
 	if err != nil {
 		return

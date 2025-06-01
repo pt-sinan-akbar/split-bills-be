@@ -10,14 +10,14 @@ type BillItem struct {
 	Qty       int64      `gorm:"type:int" json:"qty,omitempty"`
 	Price     float64    `gorm:"type:decimal(10,2)" json:"price,omitempty"`
 	Subtotal  float64    `gorm:"type:decimal(10,2)" json:"subtotal,omitempty"`
-	Tax       float64    `gorm:"type:decimal(10,2)" json:"tax,omitempty"`
-	Service   float64    `gorm:"type:decimal(10,2)" json:"service,omitempty"`
-	Discount  float64    `gorm:"type:decimal(10,2)" json:"discount,omitempty"`
+	Tax       float64    `gorm:"type:decimal(10,2)" json:"tax"`
+	Service   float64    `gorm:"type:decimal(10,2)" json:"service"`
+	Discount  float64    `gorm:"type:decimal(10,2)" json:"discount"`
 	CreatedAt time.Time  `gorm:"type:timestamp" json:"created_at,omitempty"`
 	UpdatedAt time.Time  `gorm:"type:timestamp" json:"updated_at"`
 	DeletedAt *time.Time `gorm:"type:timestamp" json:"-"`
 
 	Bill *Bill `gorm:"foreignKey:BillId" json:"bill,omitempty"`
 	// many to many
-	BillMember []*BillMember `gorm:"many2many:bill_member_items;" json:"bill_member,omitempty"`
+	BillMember []BillMember `gorm:"many2many:bill_member_items;" json:"bill_member,omitempty"`
 }

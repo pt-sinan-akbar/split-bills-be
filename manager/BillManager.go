@@ -24,13 +24,13 @@ func NewBillManager(DB *gorm.DB, BIM *BillItemManager, BDM *BillDataManager) Bil
 
 func (bm BillManager) GetAll() ([]models.Bill, error) {
 	var obj []models.Bill
-	result := bm.DB.Where("deleted_at IS NULL").Preload("BillData").Preload("BillOwner").Find(&obj)
+	result := bm.DB.Where("deleted_at IS NULL").Preload("BillData").Preload("BillOwner").Preload("BillItem", "deleted_at IS NULL").Preload("BillMember", "deleted_at IS NULL").Preload("BillMemberItem", "deleted_at IS NULL").Find(&obj)
 	return obj, result.Error
 }
 
 func (bm BillManager) GetByID(id string) (models.Bill, error) {
 	var obj models.Bill
-	result := bm.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("BillData").Preload("BillOwner").Preload("BillItem").First(&obj)
+	result := bm.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("BillData").Preload("BillOwner").Preload("BillItem", "deleted_at IS NULL").Preload("BillMember", "deleted_at IS NULL").Preload("BillMemberItem", "deleted_at IS NULL").First(&obj)
 	return obj, result.Error
 }
 
