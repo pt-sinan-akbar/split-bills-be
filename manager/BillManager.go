@@ -34,14 +34,26 @@ func (bm BillManager) GetByID(id string) (models.Bill, error) {
 	return obj, result.Error
 }
 
-func (bm BillManager) CreateAsync(bill models.Bill) error {
+func (bm BillManager) CreateAsync(bill models.Bill) (models.Bill, error) {
 	generatedId, err := helpers.GenerateID()
 	if err != nil {
-		return fmt.Errorf("failed to generate id: %v", err)
+		return models.Bill{}, fmt.Errorf("failed to generate id: %v", err)
 	}
 	bill.ID = generatedId
+	// auto create bill data too if not given
+	if bill.BillData == nil {
+		bill.BillData = &models.BillData{
+			BillId:    generatedId,
+			StoreName: "",
+			SubTotal:  0.0,
+			Discount:  0.0,
+			Tax:       0.0,
+			Service:   0.0,
+			Total:     0.0,
+		}
+	}
 	result := bm.DB.Create(&bill)
-	return result.Error
+	return bill, result.Error
 }
 
 func (bm BillManager) DeleteAsync(id string) error {

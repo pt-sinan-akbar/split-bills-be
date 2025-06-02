@@ -79,13 +79,13 @@ func (bc BillController) CreateAsync(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-
-	if err := bc.BM.CreateAsync(obj); err != nil {
+	bill, err := bc.BM.CreateAsync(obj)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, obj)
+	c.JSON(http.StatusCreated, bill)
 }
 
 // DeleteBill godoc
