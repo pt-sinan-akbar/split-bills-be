@@ -81,13 +81,13 @@ func (bc BillItemController) CreateAsync(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-
-	if err := bc.BIM.CreateAsync(obj); err != nil {
+	billItem, err := bc.BIM.CreateAsync(obj)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, obj)
+	c.JSON(http.StatusOK, billItem)
 }
 
 // DeleteBillItem godoc

@@ -11,13 +11,14 @@ import (
 )
 
 type BillManager struct {
-	DB  *gorm.DB
-	BIM *BillItemManager
-	BDM *BillDataManager
+	DB   *gorm.DB
+	BIM  *BillItemManager
+	BDM  *BillDataManager
+	BMIM *BillMemberItemManager
 }
 
-func NewBillManager(DB *gorm.DB, BIM *BillItemManager, BDM *BillDataManager) BillManager {
-	return BillManager{DB, BIM, BDM}
+func NewBillManager(DB *gorm.DB, BIM *BillItemManager, BDM *BillDataManager, BMIM *BillMemberItemManager) BillManager {
+	return BillManager{DB, BIM, BDM, BMIM}
 }
 
 // CRUD
@@ -176,26 +177,30 @@ func (bm BillManager) UploadBill(image *multipart.FileHeader) error {
 	return nil
 }
 
-func (bm BillManager) DynamicUpdateItem(billId string, itemId int, price float64, quantity int) (models.Bill, error) {
+// TODO: these dynamic shits isn't atomic, one failed operation will cause corrupted data
+
+func (bm BillManager) DynamicUpdateItem(billId string, itemId int, name string, price float64, quantity int) (models.Bill, error) {
 	bill, err := bm.GetByID(billId)
 	if err != nil {
 		return models.Bill{}, fmt.Errorf("failed to get bill: %v", err)
 	}
-	err = bm.BIM.DynamicUpdateItem(itemId, price, quantity)
+	isOnlyNameChanged, err := bm.BIM.DynamicUpdateItem(itemId, name, price, quantity)
 	if err != nil {
 		return models.Bill{}, fmt.Errorf("failed to update item: %v", err)
 	}
-	itemsSubtotal := 0.0
-	for _, item := range bill.BillItem {
-		if item.ID == int64(itemId) {
-			itemsSubtotal += price * float64(quantity)
-		} else {
-			itemsSubtotal += item.Subtotal
+	if !isOnlyNameChanged {
+		itemsSubtotal := 0.0
+		for _, item := range bill.BillItem {
+			if item.ID == int64(itemId) {
+				itemsSubtotal += price * float64(quantity)
+			} else {
+				itemsSubtotal += item.Subtotal
+			}
 		}
-	}
-	err = bm.BDM.DynamicUpdateRecalculateData(bill.BillData, itemsSubtotal)
-	if err != nil {
-		return models.Bill{}, fmt.Errorf("failed to update data: %v", err)
+		err = bm.BDM.DynamicUpdateRecalculateData(bill.BillData, itemsSubtotal)
+		if err != nil {
+			return models.Bill{}, fmt.Errorf("failed to update data: %v", err)
+		}
 	}
 	updatedBill, err := bm.GetByID(billId)
 	if err != nil {
@@ -220,6 +225,63 @@ func (bm BillManager) DynamicUpdateData(id string, tax float64, service float64)
 		}
 	}
 	updatedBill, err := bm.GetByID(id)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to get updated bill: %v", err)
+	}
+	return updatedBill, nil
+}
+
+func (bm BillManager) DynamicCreateItem(billId string, name string, price float64, quantity int) (models.Bill, error) {
+	bill, err := bm.GetByID(billId)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to get bill: %v", err)
+	}
+	taxPercent, servicePercent := bm.BDM.GetBillRates(bill.BillData)
+	item, err := bm.BIM.DynamicCreate(billId, name, price, quantity, taxPercent, servicePercent)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to create item: %v", err)
+	}
+	itemsSubtotal := 0.0
+	for _, item := range bill.BillItem {
+		itemsSubtotal += item.Subtotal
+	}
+	itemsSubtotal += item.Subtotal
+	err = bm.BDM.DynamicUpdateRecalculateData(bill.BillData, itemsSubtotal)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to update data: %v", err)
+	}
+	updatedBill, err := bm.GetByID(billId)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to get updated bill: %v", err)
+	}
+	return updatedBill, nil
+}
+
+func (bm BillManager) DynamicDeleteItem(billId string, itemId int) (models.Bill, error) {
+	bill, err := bm.GetByID(billId)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to get bill: %v", err)
+	}
+	err = bm.BIM.DeleteAsync(itemId)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to delete item: %v", err)
+	}
+	// TODO: untested on billitem having member
+	err = bm.BMIM.DeleteByItemId(itemId)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to delete member items: %v", err)
+	}
+	itemsSubtotal := 0.0
+	for _, item := range bill.BillItem {
+		if item.ID != int64(itemId) {
+			itemsSubtotal += item.Subtotal
+		}
+	}
+	err = bm.BDM.DynamicUpdateRecalculateData(bill.BillData, itemsSubtotal)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to update data: %v", err)
+	}
+	updatedBill, err := bm.GetByID(billId)
 	if err != nil {
 		return models.Bill{}, fmt.Errorf("failed to get updated bill: %v", err)
 	}

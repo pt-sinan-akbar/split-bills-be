@@ -53,11 +53,12 @@ var (
 	BillItemRouterController   routes.BillItemRouterController
 
 	// Manager
-	BillManager       manager.BillManager
-	BillItemManager   manager.BillItemManager
-	BillDataManager   manager.BillDataManager
-	BillMemberManager manager.BillMemberManager
-	BillOwnerManager  manager.BillOwnerManager
+	BillManager           manager.BillManager
+	BillItemManager       manager.BillItemManager
+	BillDataManager       manager.BillDataManager
+	BillMemberManager     manager.BillMemberManager
+	BillOwnerManager      manager.BillOwnerManager
+	BillMemberItemManager manager.BillMemberItemManager
 )
 
 func init() {
@@ -70,7 +71,8 @@ func init() {
 	// Managers
 	BillItemManager = manager.NewBillItemManager(initializers.DB)
 	BillDataManager = manager.NewBillDataManager(initializers.DB)
-	BillManager = manager.NewBillManager(initializers.DB, &BillItemManager, &BillDataManager)
+	BillMemberItemManager = manager.NewBillMemberItemManager(initializers.DB)
+	BillManager = manager.NewBillManager(initializers.DB, &BillItemManager, &BillDataManager, &BillMemberItemManager)
 	BillMemberManager = manager.NewBillMemberManager(initializers.DB)
 	BillOwnerManager = manager.NewBillOwnerManager(initializers.DB)
 

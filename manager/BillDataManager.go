@@ -123,13 +123,7 @@ func (bdm BillDataManager) DynamicUpdateData(data *models.BillData, newTax float
 	if data.Tax == newTax && data.Service == newService {
 		return 0.0, 0.0, fmt.Errorf("no changes")
 	}
-	taxPercent, servicePercent := 0.0, 0.0
-	if data.Tax != 0.0 {
-		taxPercent = data.Tax / data.SubTotal
-	}
-	if data.Service != 0.0 {
-		servicePercent = data.Service / data.SubTotal
-	}
+	taxPercent, servicePercent := bdm.GetBillRates(data)
 	if newTax != 0.0 {
 		taxPercent = newTax / data.SubTotal
 	} else {
@@ -149,4 +143,18 @@ func (bdm BillDataManager) DynamicUpdateData(data *models.BillData, newTax float
 		return taxPercent, servicePercent, err
 	}
 	return taxPercent, servicePercent, nil
+}
+
+func (bdm BillDataManager) GetBillRates(data *models.BillData) (taxPercent float64, servicePercent float64) {
+	if data.Tax != 0.0 {
+		taxPercent = data.Tax / data.SubTotal
+	} else {
+		taxPercent = 0.0
+	}
+	if data.Service != 0.0 {
+		servicePercent = data.Service / data.SubTotal
+	} else {
+		servicePercent = 0.0
+	}
+	return taxPercent, servicePercent
 }

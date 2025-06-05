@@ -25,7 +25,9 @@ func (brc *BillRouterController) BillRouter(rg *gin.RouterGroup) {
 		dynamicGroup := internalGroup.Group("/dynamic")
 		{
 			dynamicGroup.PUT("/:id/data", brc.billController.DynamicUpdateData)
+			dynamicGroup.POST("/:id/item/", brc.billController.DynamicCreateItem)
 			dynamicGroup.PUT("/:id/item/:item_id", brc.billController.DynamicUpdateItem)
+			dynamicGroup.DELETE("/:id/item/:item_id", brc.billController.DynamicDeleteItem)
 		}
 	}
 }

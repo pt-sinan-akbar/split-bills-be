@@ -201,6 +201,7 @@ func (bc BillController) DynamicUpdateData(c *gin.Context) {
 
 func (bc BillController) DynamicUpdateItem(c *gin.Context) {
 	var req struct {
+		Name     string  `json:"name"`
 		Price    float64 `json:"price"`
 		Quantity int     `json:"quantity"`
 	}
@@ -221,7 +222,7 @@ func (bc BillController) DynamicUpdateItem(c *gin.Context) {
 	}
 	// update item
 	if itemId != 0 && req.Quantity != 0 {
-		updatedBill, err := bc.BM.DynamicUpdateItem(billId, itemId, req.Price, req.Quantity)
+		updatedBill, err := bc.BM.DynamicUpdateItem(billId, itemId, req.Name, req.Price, req.Quantity)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 			return
@@ -232,4 +233,49 @@ func (bc BillController) DynamicUpdateItem(c *gin.Context) {
 	// if itemId or quantity is zero, return error
 	c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "where is the item_id or quantity la u stupid or what?"})
 	return
+}
+
+func (bc BillController) DynamicCreateItem(c *gin.Context) {
+	var req struct {
+		Name     string  `json:"name"`
+		Price    float64 `json:"price"`
+		Quantity int     `json:"quantity"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	billId := c.Param("id")
+	if req.Name == "" {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "where is the name la u stupid or what?"})
+		return
+	}
+	// update item
+	if req.Price > 0 && req.Quantity > 0 {
+		updatedBill, err := bc.BM.DynamicCreateItem(billId, req.Name, req.Price, req.Quantity)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, updatedBill)
+		return
+	}
+	// if itemId or quantity is zero, return error
+	c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "bad price or quantity, pls recheck your request"})
+	return
+}
+
+func (bc BillController) DynamicDeleteItem(c *gin.Context) {
+	billId := c.Param("id")
+	itemId, err := strconv.Atoi(c.Param("item_id"))
+	if err != nil || itemId <= 0 {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "wtf is this item_id"})
+		return
+	}
+	updatedBill, err := bc.BM.DynamicDeleteItem(billId, itemId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, updatedBill)
 }

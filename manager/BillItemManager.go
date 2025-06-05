@@ -15,13 +15,23 @@ func NewBillItemManager(DB *gorm.DB) BillItemManager {
 	return BillItemManager{DB}
 }
 
-func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity int) error {
+func (bim BillItemManager) DynamicUpdateItem(itemId int, name string, price float64, quantity int) (bool, error) {
 	item, err := bim.GetByID(itemId)
 	if err != nil {
-		return fmt.Errorf("failed to get item: %v", err)
+		return false, fmt.Errorf("failed to get item: %v", err)
 	}
 	if item.Price == price && item.Qty == int64(quantity) {
-		return fmt.Errorf("no changes detected")
+		if item.Name != name {
+			// only name has changed, update it
+			item.Name = name
+			err = bim.EditAsync(itemId, item)
+			if err != nil {
+				return false, fmt.Errorf("failed to update item name: %v", err)
+			}
+			return true, nil
+		} else {
+			return false, fmt.Errorf("no changes detected")
+		}
 	}
 	newSubtotal := price * float64(quantity)
 	var taxPercent, newTax = 0.0, 0.0
@@ -34,6 +44,7 @@ func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity
 		servicePercent = item.Subtotal / item.Service
 		newService = newSubtotal / servicePercent
 	}
+	item.Name = name
 	item.Qty = int64(quantity)
 	item.Price = price
 	item.Subtotal = newSubtotal
@@ -42,9 +53,9 @@ func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity
 
 	err = bim.EditAsync(itemId, item)
 	if err != nil {
-		return fmt.Errorf("failed to update item: %v", err)
+		return false, fmt.Errorf("failed to update item: %v", err)
 	}
-	return nil
+	return false, nil
 }
 
 func (bim BillItemManager) GetByID(id int) (models.BillItem, error) {
@@ -59,9 +70,9 @@ func (bim BillItemManager) GetAll() ([]models.BillItem, error) {
 	return obj, result.Error
 }
 
-func (bim BillItemManager) CreateAsync(billItem models.BillItem) error {
+func (bim BillItemManager) CreateAsync(billItem models.BillItem) (models.BillItem, error) {
 	result := bim.DB.Create(&billItem)
-	return result.Error
+	return billItem, result.Error
 }
 
 func (bim BillItemManager) DeleteAsync(id int) error {
@@ -130,4 +141,25 @@ func (bim BillItemManager) DynamicUpdateRecalculateItem(item models.BillItem, ta
 		return fmt.Errorf("id %v, error: %v", item.ID, err)
 	}
 	return nil
+}
+
+func (bim BillItemManager) DynamicCreate(id string, name string, price float64, quantity int, taxPercent float64, servicePercent float64) (models.BillItem, error) {
+	tax := price * float64(quantity) * taxPercent
+	service := price * float64(quantity) * servicePercent
+	subtotal := price * float64(quantity)
+	item := models.BillItem{
+		BillId:   id,
+		Name:     name,
+		Qty:      int64(quantity),
+		Price:    price,
+		Subtotal: subtotal,
+		Tax:      tax,
+		Service:  service,
+		Discount: 0.0,
+	}
+	result, err := bim.CreateAsync(item)
+	if err != nil {
+		return models.BillItem{}, fmt.Errorf("failed to create item: %v", err)
+	}
+	return result, nil
 }
