@@ -49,7 +49,7 @@ func (bim BillItemManager) DynamicUpdateItem(itemId int, price float64, quantity
 
 func (bim BillItemManager) GetByID(id int) (models.BillItem, error) {
 	var obj models.BillItem
-	result := bim.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("Bill").First(&obj)
+	result := bim.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("Bill").Preload("BillMember").First(&obj)
 	return obj, result.Error
 }
 

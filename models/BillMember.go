@@ -14,5 +14,5 @@ type BillMember struct {
 
 	Bill *Bill `gorm:"foreignKey:BillId" json:"bill,omitempty"`
 	// many to many
-	BillItem []BillItem `gorm:"many2many:bill_member_items;" json:"bill_item,omitempty"`
+	BillItem []BillItem `gorm:"many2many:bill_member_items;" json:"bill_item"`
 }

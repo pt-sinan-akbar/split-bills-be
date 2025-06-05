@@ -22,7 +22,7 @@ func (bmm BillMemberManager) GetAll() ([]models.BillMember, error) {
 
 func (bmm BillMemberManager) GetByID(id int) (models.BillMember, error) {
 	var obj models.BillMember
-	result := bmm.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("Bill").First(&obj)
+	result := bmm.DB.Where("id = ? AND deleted_at IS NULL", id).Preload("Bill").Preload("BillItem").First(&obj)
 	return obj, result.Error
 }
 
