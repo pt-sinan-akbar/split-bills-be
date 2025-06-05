@@ -176,40 +176,52 @@ func (bm BillManager) UploadBill(image *multipart.FileHeader) error {
 	return nil
 }
 
-func (bm BillManager) DynamicUpdateItem(billId string, itemId int, price float64, quantity int) error {
+func (bm BillManager) DynamicUpdateItem(billId string, itemId int, price float64, quantity int) (models.Bill, error) {
 	bill, err := bm.GetByID(billId)
 	if err != nil {
-		return fmt.Errorf("failed to get bill: %v", err)
+		return models.Bill{}, fmt.Errorf("failed to get bill: %v", err)
 	}
 	err = bm.BIM.DynamicUpdateItem(itemId, price, quantity)
 	if err != nil {
-		return fmt.Errorf("failed to update item: %v", err)
+		return models.Bill{}, fmt.Errorf("failed to update item: %v", err)
 	}
 	itemsSubtotal := 0.0
 	for _, item := range bill.BillItem {
-		itemsSubtotal += item.Subtotal
+		if item.ID == int64(itemId) {
+			itemsSubtotal += price * float64(quantity)
+		} else {
+			itemsSubtotal += item.Subtotal
+		}
 	}
 	err = bm.BDM.DynamicUpdateRecalculateData(bill.BillData, itemsSubtotal)
 	if err != nil {
-		return fmt.Errorf("failed to update data: %v", err)
+		return models.Bill{}, fmt.Errorf("failed to update data: %v", err)
 	}
-	return nil
+	updatedBill, err := bm.GetByID(billId)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to get updated bill: %v", err)
+	}
+	return updatedBill, nil
 }
 
-func (bm BillManager) DynamicUpdateData(id string, tax float64, service float64) error {
+func (bm BillManager) DynamicUpdateData(id string, tax float64, service float64) (models.Bill, error) {
 	bill, err := bm.GetByID(id)
 	if err != nil {
-		return fmt.Errorf("failed to get bill: %v", err)
+		return models.Bill{}, fmt.Errorf("failed to get bill: %v", err)
 	}
 	taxPercent, servicePercent, err := bm.BDM.DynamicUpdateData(bill.BillData, tax, service)
 	if err != nil {
-		return fmt.Errorf("failed to update data: %v", err)
+		return models.Bill{}, fmt.Errorf("failed to update data: %v", err)
 	}
 	for _, item := range bill.BillItem {
 		err = bm.BIM.DynamicUpdateRecalculateItem(item, taxPercent, servicePercent)
 		if err != nil {
-			return fmt.Errorf("failed to update item: %v", err)
+			return models.Bill{}, fmt.Errorf("failed to update item: %v", err)
 		}
 	}
-	return nil
+	updatedBill, err := bm.GetByID(id)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to get updated bill: %v", err)
+	}
+	return updatedBill, nil
 }

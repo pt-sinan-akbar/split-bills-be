@@ -2,11 +2,11 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pt-sinan-akbar/dto"
 	"github.com/pt-sinan-akbar/helpers"
 	"github.com/pt-sinan-akbar/manager"
 	"github.com/pt-sinan-akbar/models"
 	"net/http"
+	"strconv"
 )
 
 type BillController struct {
@@ -174,42 +174,62 @@ func (bc BillController) UploadImage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully uploaded image"})
 }
 
-func (bc BillController) DynamicUpdate(c *gin.Context) {
-	var req dto.DynamicUpdateRequest
+func (bc BillController) DynamicUpdateData(c *gin.Context) {
+	var req struct {
+		Tax     float64 `json:"tax"`
+		Service float64 `json:"service"`
+	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-	if req.BillId == "" {
-		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "plz give me bill id onii-chan :3"})
-		return
-	}
-	// deny request with all values filled
-	if req.Tax != 0 && req.Service != 0 && req.Item.Id != 0 && req.Item.Quantity != 0 {
-		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "wtf too many values"})
-		return
-	}
+	billId := c.Param("id")
 	// deny request with negative values
-	if req.Tax < 0 || req.Service < 0 || req.Item.Price < 0 || req.Item.Quantity < 0 {
+	if req.Tax < 0 || req.Service < 0 {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "no negative values, ok?"})
 		return
 	}
-	// update item
-	if req.Item.Id != 0 && req.Item.Quantity != 0 {
-		err := bc.BM.DynamicUpdateItem(req.BillId, req.Item.Id, req.Item.Price, req.Item.Quantity)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Item successfully updated"})
-		return
-	}
 	// update tax/service, btw these can be zero so no validation
-	err := bc.BM.DynamicUpdateData(req.BillId, req.Tax, req.Service)
+	updatedBill, err := bc.BM.DynamicUpdateData(billId, req.Tax, req.Service)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Tax/Service successfully updated"})
+	c.JSON(http.StatusOK, updatedBill)
+	return
+}
+
+func (bc BillController) DynamicUpdateItem(c *gin.Context) {
+	var req struct {
+		Price    float64 `json:"price"`
+		Quantity int     `json:"quantity"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	billId := c.Param("id")
+	itemId, err := strconv.Atoi(c.Param("item_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "wtf is this item_id"})
+		return
+	}
+	// deny request with negative values
+	if req.Price < 0 || req.Quantity < 0 {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "no negative values, ok?"})
+		return
+	}
+	// update item
+	if itemId != 0 && req.Quantity != 0 {
+		updatedBill, err := bc.BM.DynamicUpdateItem(billId, itemId, req.Price, req.Quantity)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, updatedBill)
+		return
+	}
+	// if itemId or quantity is zero, return error
+	c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "where is the item_id or quantity la u stupid or what?"})
 	return
 }

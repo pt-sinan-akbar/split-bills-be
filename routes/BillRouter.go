@@ -14,11 +14,18 @@ func NewBillRouterController(bc controllers.BillController) BillRouterController
 }
 
 func (brc *BillRouterController) BillRouter(rg *gin.RouterGroup) {
-	rg.POST("/bills/upload", brc.billController.UploadImage)
-	rg.GET("/bills", brc.billController.GetAll)
-	rg.GET("/bills/:id", brc.billController.GetByID)
-	rg.POST("/bills", brc.billController.CreateAsync)
-	rg.PUT("/bills/:id", brc.billController.EditAsync)
-	rg.DELETE("/bills/:id", brc.billController.DeleteAsync)
-	rg.PUT("/dynamicUpdate", brc.billController.DynamicUpdate)
+	internalGroup := rg.Group("/bills")
+	{
+		internalGroup.GET("/", brc.billController.GetAll)
+		internalGroup.POST("/", brc.billController.CreateAsync)
+		internalGroup.GET("/:id", brc.billController.GetByID)
+		internalGroup.PUT("/:id", brc.billController.EditAsync)
+		internalGroup.DELETE("/:id", brc.billController.DeleteAsync)
+		internalGroup.POST("/upload", brc.billController.UploadImage)
+		dynamicGroup := internalGroup.Group("/dynamic")
+		{
+			dynamicGroup.PUT("/:id/data", brc.billController.DynamicUpdateData)
+			dynamicGroup.PUT("/:id/item/:item_id", brc.billController.DynamicUpdateItem)
+		}
+	}
 }
