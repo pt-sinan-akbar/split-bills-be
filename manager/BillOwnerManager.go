@@ -26,9 +26,9 @@ func (bom BillOwnerManager) GetById(id int) (models.BillOwner, error) {
 	return obj, result.Error
 }
 
-func (bom BillOwnerManager) CreateAsync(obj models.BillOwner) error {
+func (bom BillOwnerManager) CreateAsync(obj models.BillOwner) (models.BillOwner, error) {
 	result := bom.DB.Create(&obj)
-	return result.Error
+	return obj, result.Error
 }
 
 func (bom BillOwnerManager) DeleteAsync(id int) error {
@@ -54,16 +54,16 @@ func (bom BillOwnerManager) DeleteAsync(id int) error {
 	return tx.Commit().Error
 }
 
-func (bom BillOwnerManager) EditAsync(id int, obj models.BillOwner) error {
+func (bom BillOwnerManager) EditAsync(id int, obj models.BillOwner) (models.BillOwner, error) {
 	tx := bom.DB.Begin()
 	if tx.Error != nil {
-		return tx.Error
+		return models.BillOwner{}, tx.Error
 	}
 
 	oldObj, err := bom.GetById(id)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return models.BillOwner{}, err
 	}
 
 	if err := tx.Model(&oldObj).Updates(map[string]interface{}{
@@ -74,8 +74,8 @@ func (bom BillOwnerManager) EditAsync(id int, obj models.BillOwner) error {
 		"updated_at":   time.Now(),
 	}).Error; err != nil {
 		tx.Rollback()
-		return err
+		return models.BillOwner{}, err
 	}
 
-	return tx.Commit().Error
+	return oldObj, tx.Commit().Error
 }

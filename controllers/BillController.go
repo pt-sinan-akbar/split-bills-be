@@ -297,3 +297,22 @@ func (bc BillController) DynamicDeleteMember(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Successfully deleted member from bill"})
 }
+
+func (bc BillController) UpsertOwner(c *gin.Context) {
+	billId := c.Param("id")
+	var req models.BillOwner
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	if req.Name == "" || req.Contact == "" || req.BankAccount == "" {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "one or more fields are empty"})
+		return
+	}
+	owner, err := bc.BM.UpsertOwner(billId, req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, owner)
+}

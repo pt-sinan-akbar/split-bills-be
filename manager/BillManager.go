@@ -16,10 +16,11 @@ type BillManager struct {
 	BDM  *BillDataManager
 	BMIM *BillMemberItemManager
 	BMM  *BillMemberManager
+	BOM  *BillOwnerManager
 }
 
-func NewBillManager(DB *gorm.DB, BIM *BillItemManager, BDM *BillDataManager, BMIM *BillMemberItemManager, BMM *BillMemberManager) BillManager {
-	return BillManager{DB, BIM, BDM, BMIM, BMM}
+func NewBillManager(DB *gorm.DB, BIM *BillItemManager, BDM *BillDataManager, BMIM *BillMemberItemManager, BMM *BillMemberManager, BOM *BillOwnerManager) BillManager {
+	return BillManager{DB, BIM, BDM, BMIM, BMM, BOM}
 }
 
 // CRUD
@@ -303,4 +304,29 @@ func (bm BillManager) DynamicDeleteMember(billId string, memberId int) error {
 		return fmt.Errorf("failed to delete member items: %v", err)
 	}
 	return nil
+}
+
+func (bm BillManager) UpsertOwner(billId string, req models.BillOwner) (models.BillOwner, error) {
+	owner := models.BillOwner{}
+	bill, err := bm.GetByID(billId)
+	if err != nil {
+		return models.BillOwner{}, fmt.Errorf("failed to get bill: %v", err)
+	}
+	if req.ID == 0 {
+		req.ID = 0
+		owner, err = bm.BOM.CreateAsync(req)
+		if err != nil {
+			return owner, fmt.Errorf("failed to create owner: %v", err)
+		}
+		bill.BillOwnerId = &owner.ID
+		if err := bm.EditAsync(billId, &bill); err != nil {
+			return owner, fmt.Errorf("failed to update bill with new owner: %v", err)
+		}
+	} else {
+		owner, err = bm.BOM.EditAsync(int(req.ID), req)
+		if err != nil {
+			return owner, fmt.Errorf("failed to edit owner: %v", err)
+		}
+	}
+	return owner, nil
 }
