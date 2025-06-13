@@ -283,3 +283,17 @@ func (bc BillController) DynamicDeleteItem(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, updatedBill)
 }
+
+func (bc BillController) DynamicDeleteMember(c *gin.Context) {
+	billId := c.Param("id")
+	memberId, err := strconv.Atoi(c.Param("member_id"))
+	if err != nil || memberId <= 0 {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "wtf is this member_id"})
+		return
+	}
+	if err := bc.BM.DynamicDeleteMember(billId, memberId); err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, helpers.ErrResponse{Message: "Successfully deleted member from bill"})
+}

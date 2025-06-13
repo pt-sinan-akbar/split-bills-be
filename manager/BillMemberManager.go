@@ -26,9 +26,9 @@ func (bmm BillMemberManager) GetByID(id int) (models.BillMember, error) {
 	return obj, result.Error
 }
 
-func (bmm BillMemberManager) CreateAsync(obj models.BillMember) error {
+func (bmm BillMemberManager) CreateAsync(obj models.BillMember) (models.BillMember, error) {
 	result := bmm.DB.Create(&obj)
-	return result.Error
+	return obj, result.Error
 }
 
 func (bmm BillMemberManager) DeleteAsync(id int) error {
@@ -54,16 +54,16 @@ func (bmm BillMemberManager) DeleteAsync(id int) error {
 	return tx.Commit().Error
 }
 
-func (bmm BillMemberManager) EditAsync(id int, obj models.BillMember) error {
+func (bmm BillMemberManager) EditAsync(id int, obj models.BillMember) (models.BillMember, error) {
 	tx := bmm.DB.Begin()
 	if tx.Error != nil {
-		return tx.Error
+		return models.BillMember{}, tx.Error
 	}
 
 	oldObj, err := bmm.GetByID(id)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return models.BillMember{}, err
 	}
 
 	if err := tx.Model(&oldObj).Updates(map[string]interface{}{
@@ -73,8 +73,8 @@ func (bmm BillMemberManager) EditAsync(id int, obj models.BillMember) error {
 		"updated_at": time.Now(),
 	}).Error; err != nil {
 		tx.Rollback()
-		return err
+		return models.BillMember{}, err
 	}
 
-	return tx.Commit().Error
+	return oldObj, tx.Commit().Error
 }

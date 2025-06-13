@@ -81,13 +81,13 @@ func (bc BillMemberController) CreateAsync(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-
-	if err := bc.BMM.CreateAsync(obj); err != nil {
+	result, err := bc.BMM.CreateAsync(obj)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, obj)
+	c.JSON(http.StatusOK, result)
 }
 
 // DeleteBillMember godoc
@@ -140,11 +140,11 @@ func (bc BillMemberController) EditAsync(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-
-	if err := bc.BMM.EditAsync(id, obj); err != nil {
+	updatedObj, err := bc.BMM.EditAsync(id, obj)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, obj)
+	c.JSON(http.StatusOK, updatedObj)
 }

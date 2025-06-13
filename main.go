@@ -72,8 +72,8 @@ func init() {
 	BillItemManager = manager.NewBillItemManager(initializers.DB)
 	BillDataManager = manager.NewBillDataManager(initializers.DB)
 	BillMemberItemManager = manager.NewBillMemberItemManager(initializers.DB)
-	BillManager = manager.NewBillManager(initializers.DB, &BillItemManager, &BillDataManager, &BillMemberItemManager)
 	BillMemberManager = manager.NewBillMemberManager(initializers.DB)
+	BillManager = manager.NewBillManager(initializers.DB, &BillItemManager, &BillDataManager, &BillMemberItemManager, &BillMemberManager)
 	BillOwnerManager = manager.NewBillOwnerManager(initializers.DB)
 
 	//Controllers

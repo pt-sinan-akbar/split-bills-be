@@ -15,10 +15,11 @@ type BillManager struct {
 	BIM  *BillItemManager
 	BDM  *BillDataManager
 	BMIM *BillMemberItemManager
+	BMM  *BillMemberManager
 }
 
-func NewBillManager(DB *gorm.DB, BIM *BillItemManager, BDM *BillDataManager, BMIM *BillMemberItemManager) BillManager {
-	return BillManager{DB, BIM, BDM, BMIM}
+func NewBillManager(DB *gorm.DB, BIM *BillItemManager, BDM *BillDataManager, BMIM *BillMemberItemManager, BMM *BillMemberManager) BillManager {
+	return BillManager{DB, BIM, BDM, BMIM, BMM}
 }
 
 // CRUD
@@ -266,7 +267,6 @@ func (bm BillManager) DynamicDeleteItem(billId string, itemId int) (models.Bill,
 	if err != nil {
 		return models.Bill{}, fmt.Errorf("failed to delete item: %v", err)
 	}
-	// TODO: untested on billitem having member
 	err = bm.BMIM.DeleteByItemId(itemId)
 	if err != nil {
 		return models.Bill{}, fmt.Errorf("failed to delete member items: %v", err)
@@ -286,4 +286,21 @@ func (bm BillManager) DynamicDeleteItem(billId string, itemId int) (models.Bill,
 		return models.Bill{}, fmt.Errorf("failed to get updated bill: %v", err)
 	}
 	return updatedBill, nil
+}
+
+func (bm BillManager) DynamicDeleteMember(billId string, memberId int) error {
+	// ini bisa diubah, tujuannya buat ngecek aja ada billnya atau ngga
+	_, err := bm.GetByID(billId)
+	if err != nil {
+		return fmt.Errorf("failed to get bill: %v", err)
+	}
+	err = bm.BMM.DeleteAsync(memberId)
+	if err != nil {
+		return fmt.Errorf("failed to delete member: %v", err)
+	}
+	err = bm.BMIM.DeleteByMemberId(memberId)
+	if err != nil {
+		return fmt.Errorf("failed to delete member items: %v", err)
+	}
+	return nil
 }

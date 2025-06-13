@@ -54,13 +54,18 @@ func (bmim BillMemberItemManager) GetByItemId(itemId int) ([]models.BillMemberIt
 	return bmim.internalGet(nil, nil, &itemId)
 }
 
+func (bmim BillMemberItemManager) GetByMemberId(memberId int) ([]models.BillMemberItem, error) {
+	return bmim.internalGet(nil, &memberId, nil)
+}
+
 func (bmim BillMemberItemManager) DeleteModel(obj models.BillMemberItem) error {
 	tx := bmim.DB.Begin()
 	if tx.Error != nil {
 		return tx.Error
 	}
 
-	obj.DeletedAt = &time.Time{}
+	now := time.Now()
+	obj.DeletedAt = &now
 
 	if err := tx.Save(&obj).Error; err != nil {
 		tx.Rollback()
@@ -72,6 +77,20 @@ func (bmim BillMemberItemManager) DeleteModel(obj models.BillMemberItem) error {
 
 func (bmim BillMemberItemManager) DeleteByItemId(itemId int) error {
 	memberItems, err := bmim.GetByItemId(itemId)
+	if err != nil {
+		return fmt.Errorf("failed to get member items: %v", err)
+	}
+	for _, memberItem := range memberItems {
+		err = bmim.DeleteModel(memberItem)
+		if err != nil {
+			return fmt.Errorf("failed to delete member item: %v", err)
+		}
+	}
+	return nil
+}
+
+func (bmim BillMemberItemManager) DeleteByMemberId(memberId int) error {
+	memberItems, err := bmim.GetByMemberId(memberId)
 	if err != nil {
 		return fmt.Errorf("failed to get member items: %v", err)
 	}
