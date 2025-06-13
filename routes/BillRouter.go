@@ -18,18 +18,21 @@ func (brc *BillRouterController) BillRouter(rg *gin.RouterGroup) {
 	{
 		internalGroup.GET("/", brc.billController.GetAll)
 		internalGroup.POST("/", brc.billController.CreateAsync)
-		internalGroup.GET("/:id", brc.billController.GetByID)
-		internalGroup.PUT("/:id", brc.billController.EditAsync)
-		internalGroup.DELETE("/:id", brc.billController.DeleteAsync)
 		internalGroup.POST("/upload", brc.billController.UploadImage)
-		dynamicGroup := internalGroup.Group("/dynamic")
+		existingBillGroup := internalGroup.Group("/:id")
 		{
-			dynamicGroup.PUT("/:id/data", brc.billController.DynamicUpdateData)
-			dynamicGroup.POST("/:id/item/", brc.billController.DynamicCreateItem)
-			dynamicGroup.PUT("/:id/item/:item_id", brc.billController.DynamicUpdateItem)
-			dynamicGroup.DELETE("/:id/item/:item_id", brc.billController.DynamicDeleteItem)
-			dynamicGroup.DELETE("/:id/member/:member_id", brc.billController.DynamicDeleteMember)
-			dynamicGroup.POST("/:id/owner/", brc.billController.UpsertOwner)
+			existingBillGroup.GET("", brc.billController.GetByID)
+			existingBillGroup.PUT("", brc.billController.EditAsync)
+			existingBillGroup.DELETE("", brc.billController.DeleteAsync)
+			dynamicGroup := existingBillGroup.Group("/dynamic")
+			{
+				dynamicGroup.PUT("/data", brc.billController.DynamicUpdateData)
+				dynamicGroup.POST("/item", brc.billController.DynamicCreateItem)
+				dynamicGroup.PUT("/item/:item_id", brc.billController.DynamicUpdateItem)
+				dynamicGroup.DELETE("/item/:item_id", brc.billController.DynamicDeleteItem)
+				dynamicGroup.DELETE("/member/:member_id", brc.billController.DynamicDeleteMember)
+				dynamicGroup.POST("/owner", brc.billController.UpsertOwner)
+			}
 		}
 	}
 }

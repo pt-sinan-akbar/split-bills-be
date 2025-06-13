@@ -192,6 +192,10 @@ func (bc BillController) DynamicUpdateData(c *gin.Context) {
 	// update tax/service, btw these can be zero so no validation
 	updatedBill, err := bc.BM.DynamicUpdateData(billId, req.Tax, req.Service)
 	if err != nil {
+		if err.Error() == "failed to update data: no changes" {
+			c.JSON(http.StatusAccepted, gin.H{"message": "no changes detected"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
 		return
 	}

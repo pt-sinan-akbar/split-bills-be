@@ -125,5 +125,5 @@ func main() {
 	})
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	log.Fatal(server.Run("127.0.0.1:" + initializers.ConfigSetting.ServerPort))
+	log.Fatal(server.Run("0.0.0.0:" + initializers.ConfigSetting.ServerPort))
 }
