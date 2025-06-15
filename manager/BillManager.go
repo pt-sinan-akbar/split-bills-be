@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+	"github.com/pt-sinan-akbar/dto"
 	"github.com/pt-sinan-akbar/helpers"
 	"github.com/pt-sinan-akbar/models"
 	"gorm.io/gorm"
@@ -527,4 +528,81 @@ func (bm BillManager) FinalizeBill(billId string) error {
 	}
 
 	return nil
+}
+
+func (bm BillManager) GetBillSummary(billId string) (dto.BillSummary, error) {
+	bill, err := bm.GetByID(billId)
+	if err != nil {
+		return dto.BillSummary{}, fmt.Errorf("failed to get bill: %v", err)
+	}
+	var summary dto.BillSummary
+	summary.BillId = bill.ID
+	summary.Name = bill.Name
+	summary.Contact.Name = bill.BillOwner.Name
+	summary.Contact.Contact = bill.BillOwner.Contact
+	summary.Contact.BankAccount = bill.BillOwner.BankAccount
+	summary.Members = bm.loadSummaryMembers(bill)
+
+	return summary, nil
+}
+
+func (bm BillManager) loadSummaryMembers(bill models.Bill) []dto.BillSummaryMember {
+	var members []dto.BillSummaryMember
+	for _, member := range bill.BillMember {
+		if member.DeletedAt != nil {
+			continue // Skip deleted members
+		}
+		var summaryMember dto.BillSummaryMember
+		summaryMember.Name = member.Name
+		summaryMember.PriceOwe = member.PriceOwe
+		summaryMember.BillItems = bm.loadSummaryItems(bill, member.ID)
+		members = append(members, summaryMember)
+	}
+	return members
+}
+
+func (bm BillManager) loadSummaryItems(bill models.Bill, memberId int64) []dto.BillSummaryItem {
+	var items []dto.BillSummaryItem
+	itemsOwned := make(map[int]int64)
+	memberCountSplitEqual := make(map[int]int)
+	for _, memberItem := range bill.BillMemberItem {
+		if memberItem.BillMemberId == int(memberId) && memberItem.DeletedAt == nil {
+			if memberItem.Quantity != nil {
+				itemsOwned[memberItem.BillItemId] += *memberItem.Quantity
+			} else {
+				itemsOwned[memberItem.BillItemId] = 0
+			}
+		}
+		if memberItem.Quantity == nil {
+			memberCountSplitEqual[memberItem.BillItemId]++
+		}
+	}
+	for _, item := range bill.BillItem {
+		if item.DeletedAt != nil {
+			continue // Skip deleted items
+		}
+		// also continue if item not owned by member
+		if _, ok := itemsOwned[int(item.ID)]; !ok {
+			continue
+		}
+		var summaryItem dto.BillSummaryItem
+		summaryItem.Name = item.Name
+		qtyOwned := itemsOwned[int(item.ID)]
+		summaryItem.Qty = qtyOwned
+		if qtyOwned == 0 && memberCountSplitEqual[int(item.ID)] > 0 {
+			summaryItem.Price = item.Subtotal / float64(memberCountSplitEqual[int(item.ID)])
+			summaryItem.Tax = item.Tax / float64(memberCountSplitEqual[int(item.ID)])
+			summaryItem.Service = item.Service / float64(memberCountSplitEqual[int(item.ID)])
+			summaryItem.Discount = item.Discount / float64(memberCountSplitEqual[int(item.ID)])
+			summaryItem.Total = summaryItem.Price + summaryItem.Tax + summaryItem.Service - summaryItem.Discount
+		} else {
+			summaryItem.Price = item.Subtotal / float64(qtyOwned)
+			summaryItem.Tax = item.Tax / float64(qtyOwned)
+			summaryItem.Service = item.Service / float64(qtyOwned)
+			summaryItem.Discount = item.Discount / float64(qtyOwned)
+			summaryItem.Total = summaryItem.Price + summaryItem.Tax + summaryItem.Service - summaryItem.Discount
+		}
+		items = append(items, summaryItem)
+	}
+	return items
 }

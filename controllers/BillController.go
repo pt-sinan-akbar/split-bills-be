@@ -375,3 +375,17 @@ func (bc BillController) FinalizeBill(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "bill finalized successfully"})
 }
+
+func (bc BillController) GetBillSummary(c *gin.Context) {
+	billId := c.Param("id")
+	if billId == "" {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "bill id is required"})
+		return
+	}
+	summary, err := bc.BM.GetBillSummary(billId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, summary)
+}

@@ -36,6 +36,7 @@ func (brc *BillRouterController) BillRouter(rg *gin.RouterGroup) {
 			}
 			existingBillGroup.GET("/validate", brc.billController.ValidateBill)
 			existingBillGroup.POST("/finalize", brc.billController.FinalizeBill)
+			existingBillGroup.GET("/summary", brc.billController.GetBillSummary)
 		}
 	}
 }
