@@ -32,7 +32,9 @@ func (brc *BillRouterController) BillRouter(rg *gin.RouterGroup) {
 				dynamicGroup.DELETE("/item/:item_id", brc.billController.DynamicDeleteItem)
 				dynamicGroup.DELETE("/member/:member_id", brc.billController.DynamicDeleteMember)
 				dynamicGroup.POST("/owner", brc.billController.UpsertOwner)
+				dynamicGroup.POST("/member-items", brc.billController.UpsertMemberItems)
 			}
+			existingBillGroup.GET("/validate", brc.billController.ValidateBill)
 		}
 	}
 }

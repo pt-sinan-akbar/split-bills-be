@@ -10,5 +10,5 @@ type BillMemberItem struct {
 	BillMemberId int         `gorm:"type:int;primaryKey;" json:"bill_member_id,omitempty"`
 	BillMember   *BillMember `gorm:"foreignKey:BillMemberId;references:ID" json:"bill_member,omitempty"`
 	Quantity     *int64      `gorm:"type:int" json:"qty"`
-	DeletedAt    *time.Time  `gorm:"type:timestamp" json:"-"`
+	DeletedAt    *time.Time  `gorm:"type:timestamp" json:"deleted_at"`
 }

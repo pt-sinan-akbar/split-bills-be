@@ -102,3 +102,36 @@ func (bmim BillMemberItemManager) DeleteByMemberId(memberId int) error {
 	}
 	return nil
 }
+
+func (bmim BillMemberItemManager) UpsertMany(items []models.BillMemberItem) error {
+	tx := bmim.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	for _, item := range items {
+		var existingItem models.BillMemberItem
+		result := tx.Unscoped().Where("bill_id = ? AND bill_item_id = ? AND bill_member_id = ?",
+			item.BillId, item.BillItemId, item.BillMemberId).First(&existingItem)
+
+		if result.Error == nil {
+			// Item exists - update or restore
+			updates := map[string]interface{}{
+				"quantity":   item.Quantity,
+				"deleted_at": item.DeletedAt,
+			}
+			if err := tx.Model(&existingItem).Updates(updates).Error; err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to update member item: %v", err)
+			}
+		} else {
+			// Item doesn't exist - create new
+			if err := tx.Create(&item).Error; err != nil {
+				tx.Rollback()
+				return fmt.Errorf("failed to create member item: %v", err)
+			}
+		}
+	}
+
+	return tx.Commit().Error
+}

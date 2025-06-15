@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"io"
 	"mime/multipart"
+	"strings"
 	"time"
 )
 
@@ -329,4 +330,115 @@ func (bm BillManager) UpsertOwner(billId string, req models.BillOwner) (models.B
 		}
 	}
 	return owner, nil
+}
+
+func (bm BillManager) UpsertMemberItems(billId string, memberItems []models.BillMemberItem) (models.Bill, error) {
+	err := bm.BMIM.UpsertMany(memberItems)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to upsert member items: %v", err)
+	}
+	bill, err := bm.GetByID(billId)
+	if err != nil {
+		return models.Bill{}, fmt.Errorf("failed to get bill: %v", err)
+	}
+	return bill, nil
+}
+
+func (bm BillManager) ValidateBill(billId string) (error, error) {
+	bill, err := bm.GetByID(billId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bill: %v", err)
+	}
+	// can be extended to check other things like if bill is empty, or if items are empty, etc.
+	err = bm.validateMemberItemQty(bill)
+	if err != nil {
+		return err, nil
+	}
+	err = bm.validateData(bill)
+	if err != nil {
+		return err, nil
+	}
+	return nil, nil
+}
+
+func (bm BillManager) validateMemberItemQty(bill models.Bill) error {
+	// below is vibe coded, but it's correct tho
+	// Map to track allocated quantities per item
+	allocatedQty := make(map[int64]int64)
+	// Count members using each item (for null quantity cases)
+	memberCount := make(map[int]int)
+	// Track items with explicitly set quantities
+	itemsWithExplicitQty := make(map[int]bool)
+
+	// Count members and track explicit allocations
+	for _, memberItem := range bill.BillMemberItem {
+		if memberItem.DeletedAt == nil {
+			if memberItem.Quantity != nil {
+				allocatedQty[int64(memberItem.BillItemId)] += *memberItem.Quantity
+				itemsWithExplicitQty[memberItem.BillItemId] = true
+			} else {
+				// Count this member for equal splitting
+				memberCount[memberItem.BillItemId]++
+			}
+		}
+	}
+
+	// Check if allocated quantities match item quantities
+	var errors []string
+	for _, item := range bill.BillItem {
+		itemID := int(item.ID)
+
+		// Skip check if item has a mixture of null and non-null quantities
+		if itemsWithExplicitQty[itemID] && memberCount[itemID] > 0 {
+			errors = append(errors,
+				fmt.Sprintf("%s has mixed allocation (both per person and equal split)", item.Name))
+			continue
+		}
+
+		totalAllocated := allocatedQty[item.ID]
+
+		// If using equal splitting (all null quantities)
+		if !itemsWithExplicitQty[itemID] && memberCount[itemID] > 0 {
+			// This is valid - members will split equally
+			continue
+		}
+
+		// If using explicit quantities, ensure they match
+		if totalAllocated != item.Qty {
+			errors = append(errors,
+				fmt.Sprintf("%s (allocated: %d, total: %d)",
+					item.Name, totalAllocated, item.Qty))
+		}
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("item allocation issues: %s", strings.Join(errors, ", "))
+	}
+	return nil
+}
+
+func (bm BillManager) validateData(bill models.Bill) error {
+	errorPrefix := "data issues: "
+	taxExist := bill.BillData.Tax != 0
+	serviceExist := bill.BillData.Service != 0
+	totalTaxItems, totalServiceItems := 0.0, 0.0
+	for _, item := range bill.BillItem {
+		if taxExist && item.Tax != 0 {
+			totalTaxItems += item.Tax
+		}
+		if serviceExist && item.Service != 0 {
+			totalServiceItems += item.Service
+		}
+	}
+	if taxExist && totalTaxItems != bill.BillData.Tax {
+		return fmt.Errorf("%s mismatch between total tax from items (%f) and bill data tax (%f)", errorPrefix, totalTaxItems, bill.BillData.Tax)
+	}
+	if serviceExist && totalServiceItems != bill.BillData.Service {
+		return fmt.Errorf("%s mismatch between total service from items (%f) and bill data service (%f)", errorPrefix, totalServiceItems, bill.BillData.Service)
+	}
+	if bill.BillData.SubTotal != bill.BillData.Total-bill.BillData.Tax-bill.BillData.Service-bill.BillData.Discount {
+		return fmt.Errorf("%s bill data sub total (%f) does not match calculated total (%f)",
+			errorPrefix, bill.BillData.SubTotal, bill.BillData.Total-bill.BillData.Tax-bill.BillData.Service-bill.BillData.Discount)
+	}
+	return nil
 }

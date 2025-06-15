@@ -309,8 +309,8 @@ func (bc BillController) UpsertOwner(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
 		return
 	}
-	if req.Name == "" || req.Contact == "" || req.BankAccount == "" {
-		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "one or more fields are empty"})
+	if req.Name == "" {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "Name is required"})
 		return
 	}
 	owner, err := bc.BM.UpsertOwner(billId, req)
@@ -319,4 +319,45 @@ func (bc BillController) UpsertOwner(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, owner)
+}
+
+func (bc BillController) UpsertMemberItems(c *gin.Context) {
+	billId := c.Param("id")
+	var memberItems []models.BillMemberItem
+
+	if err := c.ShouldBindJSON(&memberItems); err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	for _, item := range memberItems {
+		if item.BillId != billId {
+			c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "why are you trying to update member items for a different bill?"})
+			return
+		}
+	}
+	bill, err := bc.BM.UpsertMemberItems(billId, memberItems)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, bill)
+}
+
+func (bc BillController) ValidateBill(c *gin.Context) {
+	billId := c.Param("id")
+	if billId == "" {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "bill id is required"})
+		return
+	}
+	validationError, serverError := bc.BM.ValidateBill(billId)
+	if validationError != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: validationError.Error()})
+		return
+	}
+	if serverError != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: serverError.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "bill is valid"})
 }
