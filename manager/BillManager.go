@@ -181,6 +181,7 @@ func (bm BillManager) UploadBill(image *multipart.FileHeader) error {
 }
 
 // TODO: these dynamic shits isn't atomic, one failed operation will cause corrupted data
+// TODO: also updated data can be not re-fetched if using pointer, the engineer is skill issue
 
 func (bm BillManager) DynamicUpdateItem(billId string, itemId int, name string, price float64, quantity int) (models.Bill, error) {
 	bill, err := bm.GetByID(billId)
@@ -440,5 +441,90 @@ func (bm BillManager) validateData(bill models.Bill) error {
 		return fmt.Errorf("%s bill data sub total (%f) does not match calculated total (%f)",
 			errorPrefix, bill.BillData.SubTotal, bill.BillData.Total-bill.BillData.Tax-bill.BillData.Service-bill.BillData.Discount)
 	}
+	return nil
+}
+
+func (bm BillManager) FinalizeBill(billId string) error {
+	bill, err := bm.GetByID(billId)
+	if err != nil {
+		return fmt.Errorf("failed to get bill: %v", err)
+	}
+	// Create a map to track member's owed amounts
+	memberTotal := make(map[int]float64)
+
+	// Process each item to calculate member costs
+	for _, item := range bill.BillItem {
+		if item.DeletedAt != nil {
+			continue // Skip deleted items
+		}
+		// Find all non-deleted member items for this item
+		var memberItems []models.BillMemberItem
+		for _, mi := range bill.BillMemberItem {
+			if mi.BillItemId == int(item.ID) && mi.DeletedAt == nil {
+				memberItems = append(memberItems, mi)
+			}
+		}
+
+		if len(memberItems) == 0 {
+			return fmt.Errorf("item %s having no member assigned, err: %v", item.Name, err)
+		}
+
+		// Calculate total price of this item including tax and service
+		itemTotalPrice := item.Subtotal + item.Tax + item.Service - item.Discount
+
+		// split per person
+		memberQty := make(map[int]int64)
+		// split equal
+		memberEqualAssigned := make(map[int]bool)
+
+		for _, mi := range memberItems {
+			if mi.Quantity != nil {
+				memberQty[mi.BillMemberId] += *mi.Quantity
+			} else {
+				memberEqualAssigned[mi.BillMemberId] = true
+			}
+		}
+
+		// if both explicit and null quantities exist, reject
+		if len(memberQty) > 0 && len(memberEqualAssigned) > 0 {
+			return fmt.Errorf("item %s has mixed allocation (both explicit and equal split), err: %v", item.Name, err)
+		}
+
+		// Calculate price per quantity unit
+		pricePerUnit := itemTotalPrice / float64(item.Qty)
+
+		// Distribute owed amounts to each member
+		// Split per person
+		for memberId, qty := range memberQty {
+			if qty <= 0 {
+				return fmt.Errorf("item %s has member %d with non-positive quantity %d, err: %v", item.Name, memberId, qty, err)
+			}
+			// Calculate owed amount for this member
+			owed := pricePerUnit * float64(qty)
+			memberTotal[memberId] += owed
+		}
+		// Split equal
+		if len(memberEqualAssigned) > 0 {
+			equalOwed := itemTotalPrice / float64(len(memberEqualAssigned))
+			for memberId := range memberEqualAssigned {
+				memberTotal[memberId] += equalOwed
+			}
+		}
+	}
+
+	// Update each member's PriceOwe field
+	for _, member := range bill.BillMember {
+		if member.DeletedAt != nil {
+			continue
+		}
+
+		memberID := int(member.ID)
+		owed := memberTotal[memberID]
+		member.PriceOwe = &owed
+		if _, err := bm.BMM.EditAsync(memberID, member); err != nil {
+			return fmt.Errorf("failed to update member %d: %v", memberID, err)
+		}
+	}
+
 	return nil
 }

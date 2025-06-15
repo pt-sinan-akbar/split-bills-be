@@ -361,3 +361,17 @@ func (bc BillController) ValidateBill(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "bill is valid"})
 }
+
+func (bc BillController) FinalizeBill(c *gin.Context) {
+	billId := c.Param("id")
+	if billId == "" {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "bill id is required"})
+		return
+	}
+	err := bc.BM.FinalizeBill(billId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "bill finalized successfully"})
+}

@@ -35,6 +35,7 @@ func (brc *BillRouterController) BillRouter(rg *gin.RouterGroup) {
 				dynamicGroup.POST("/member-items", brc.billController.UpsertMemberItems)
 			}
 			existingBillGroup.GET("/validate", brc.billController.ValidateBill)
+			existingBillGroup.POST("/finalize", brc.billController.FinalizeBill)
 		}
 	}
 }
