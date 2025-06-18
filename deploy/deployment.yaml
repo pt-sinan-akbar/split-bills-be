@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: split-bill-be
+  labels:
+    app: split-bill-be
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: split-bill-be
+  template:
+    metadata:
+      name: split-bill-be
+      labels:
+        app: split-bill-be
+    spec:
+      containers:
+        - name: split-bill-be
+          image: dta32/split-bill-be:latest # to change once put into Jenkins CI
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /app/app.env
+              name: env-volume
+              subPath: app.env
+      volumes:
+        - name: env-volume
+          configMap:
+            name: split-bill-be-env
+            items:
+              - key: app.env
+                path: app.env
+#      restartPolicy: Always
+      

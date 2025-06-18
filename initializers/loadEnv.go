@@ -13,6 +13,7 @@ type Config struct {
 	SupabaseSecretKey  string `mapstructure:"SUPABASE_SECRET_KEY"`
 	SupabaseBucket     string `mapstructure:"SUPABASE_BUCKET"`
 	SupbaseFolder      string `mapstructure:"SUPABASE_FOLDER"`
+	GinMode            string `mapstructure:"GIN_MODE"`
 }
 
 var ConfigSetting = &Config{}
@@ -23,6 +24,7 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.SetConfigName("app")
 
 	viper.AutomaticEnv()
+	viper.SetDefault("GIN_MODE", "debug")
 
 	err = viper.ReadInConfig()
 	if err != nil {

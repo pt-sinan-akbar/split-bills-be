@@ -3,3 +3,4 @@ app.env
 .vscode/
 tmp/
 main
+deploy/configmap.yaml

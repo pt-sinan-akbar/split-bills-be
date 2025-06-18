@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: split-bill-be-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1$2$3
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+    - host: splitbill.dta32.my.id
+      http:
+        paths:
+          - path: /(api)(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: split-bill-be-service
+                port:
+                  number: 80

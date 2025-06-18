@@ -90,6 +90,7 @@ func init() {
 	BillDataRouterController = routes.NewBillDataRouterController(BillDataController)
 	BillItemRouterController = routes.NewBillItemRouterController(BillItemController)
 
+	gin.SetMode(config.GinMode)
 	server = gin.Default()
 }
 
@@ -125,5 +126,11 @@ func main() {
 	})
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	log.Fatal(server.Run("0.0.0.0:" + initializers.ConfigSetting.ServerPort))
+	host := ""
+	if initializers.ConfigSetting.GinMode == gin.ReleaseMode {
+		host = "0.0.0.0"
+	} else {
+		host = "127.0.0.1"
+	}
+	log.Fatal(server.Run(host + ":" + initializers.ConfigSetting.ServerPort))
 }
