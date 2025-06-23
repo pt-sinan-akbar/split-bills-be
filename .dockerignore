@@ -1,0 +1,6 @@
+app.env
+.idea/
+.vscode/
+tmp/
+main
+deploy/configmap.yaml

@@ -596,10 +596,14 @@ func (bm BillManager) loadSummaryItems(bill models.Bill, memberId int64) []dto.B
 			summaryItem.Discount = item.Discount / float64(memberCountSplitEqual[int(item.ID)])
 			summaryItem.Total = summaryItem.Price + summaryItem.Tax + summaryItem.Service - summaryItem.Discount
 		} else {
-			summaryItem.Price = item.Subtotal / float64(qtyOwned)
-			summaryItem.Tax = item.Tax / float64(qtyOwned)
-			summaryItem.Service = item.Service / float64(qtyOwned)
-			summaryItem.Discount = item.Discount / float64(qtyOwned)
+			perUnitPrice := item.Subtotal / float64(item.Qty)
+			perUnitTax := item.Tax / float64(item.Qty)
+			perUnitService := item.Service / float64(item.Qty)
+			perUnitDiscount := item.Discount / float64(item.Qty)
+			summaryItem.Price = perUnitPrice * float64(qtyOwned)
+			summaryItem.Tax = perUnitTax * float64(qtyOwned)
+			summaryItem.Service = perUnitService * float64(qtyOwned)
+			summaryItem.Discount = perUnitDiscount * float64(qtyOwned)
 			summaryItem.Total = summaryItem.Price + summaryItem.Tax + summaryItem.Service - summaryItem.Discount
 		}
 		items = append(items, summaryItem)
