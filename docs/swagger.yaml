@@ -10,11 +10,21 @@ definitions:
       bill_data:
         allOf:
         - $ref: '#/definitions/models.BillData'
-        description: has many BillData
+        description: has one BillData
       bill_item:
         description: has many BillItem
         items:
           $ref: '#/definitions/models.BillItem'
+        type: array
+      bill_member:
+        description: has many BillMember
+        items:
+          $ref: '#/definitions/models.BillMember'
+        type: array
+      bill_member_item:
+        description: has many BillMemberItems
+        items:
+          $ref: '#/definitions/models.BillMemberItem'
         type: array
       bill_owner:
         allOf:
@@ -114,12 +124,27 @@ definitions:
         type: string
       price_owe:
         type: number
-      profile_picture:
-        items:
-          type: integer
-        type: array
       updated_at:
         type: string
+    type: object
+  models.BillMemberItem:
+    properties:
+      bill:
+        $ref: '#/definitions/models.Bill'
+      bill_id:
+        type: string
+      bill_item:
+        $ref: '#/definitions/models.BillItem'
+      bill_item_id:
+        type: integer
+      bill_member:
+        $ref: '#/definitions/models.BillMember'
+      bill_member_id:
+        type: integer
+      deleted_at:
+        type: string
+      qty:
+        type: integer
     type: object
   models.BillOwner:
     properties:
@@ -863,6 +888,40 @@ paths:
           schema:
             $ref: '#/definitions/helpers.ErrResponse'
       summary: Update a bill by ID
+      tags:
+      - bills
+  /bills/extract-bill-data:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an image, extract data using Gemini, and create a bill
+      parameters:
+      - description: Bill Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Bill Image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Bill'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helpers.ErrResponse'
+      summary: Extract bill data from image
       tags:
       - bills
   /bills/upload:
