@@ -425,7 +425,8 @@ func (bc BillController) ExtractBillData(c *gin.Context) {
 	}
 
 	bill := models.Bill{
-		Name: name,
+		Name:     name,
+		RawImage: &image.Filename,
 		BillData: &models.BillData{
 			StoreName: extractedData.StoreName,
 			SubTotal:  extractedData.Subtotal,
