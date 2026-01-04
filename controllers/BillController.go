@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pt-sinan-akbar/helpers"
 	"github.com/pt-sinan-akbar/manager"
 	"github.com/pt-sinan-akbar/models"
-	"net/http"
-	"strconv"
 )
 
 type BillController struct {
@@ -388,4 +389,75 @@ func (bc BillController) GetBillSummary(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, summary)
+}
+
+// ExtractBillData godoc
+//
+//	@Summary		Extract bill data from image
+//	@Description	Upload an image, extract data using Gemini, and create a bill
+//	@Tags			bills
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			name	formData	string	true	"Bill Name"
+//	@Param			image	formData	file	true	"Bill Image"
+//	@Success		200		{object}	models.Bill
+//	@Failure		400		{object}	helpers.ErrResponse
+//	@Failure		500		{object}	helpers.ErrResponse
+//	@Router			/bills/extract-bill-data [post]
+func (bc BillController) ExtractBillData(c *gin.Context) {
+	name := c.PostForm("name")
+	if name == "" {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "name is required"})
+		return
+	}
+
+	image, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helpers.ErrResponse{Message: "image is required"})
+		return
+	}
+
+	geminiHelper := helpers.NewGeminiHelper()
+	extractedData, err := geminiHelper.ExtractBillData(image)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: "failed to extract data: " + err.Error()})
+		return
+	}
+
+	bill := models.Bill{
+		Name:     name,
+		RawImage: &image.Filename,
+		BillData: &models.BillData{
+			StoreName: extractedData.StoreName,
+			SubTotal:  extractedData.Subtotal,
+			Tax:       extractedData.Tax,
+			Service:   extractedData.Service,
+			Discount:  extractedData.Discount,
+			Total:     extractedData.Total,
+		},
+	}
+
+	for _, item := range extractedData.Items {
+		bill.BillItem = append(bill.BillItem, models.BillItem{
+			Name:     item.Name,
+			Qty:      item.Qty,
+			Price:    item.Price,
+			Subtotal: item.Subtotal,
+		})
+	}
+
+	// Create bill in DB
+	createdBill, err := bc.BM.CreateAsync(bill)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: "failed to create bill: " + err.Error()})
+		return
+	}
+
+	// TODO: do we really need to store the iamge?
+	// if err := bc.BM.SaveImage(image, createdBill.ID); err != nil {
+	// 	c.JSON(http.StatusInternalServerError, helpers.ErrResponse{Message: "failed to save image: " + err.Error()})
+	// 	return
+	// }
+
+	c.JSON(http.StatusOK, createdBill)
 }

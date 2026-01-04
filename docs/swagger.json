@@ -955,6 +955,57 @@
                 }
             }
         },
+        "/bills/extract-bill-data": {
+            "post": {
+                "description": "Upload an image, extract data using Gemini, and create a bill",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bills"
+                ],
+                "summary": "Extract bill data from image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bill Name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Bill Image",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Bill"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/helpers.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/bills/upload": {
             "post": {
                 "description": "Upload image",
@@ -1147,7 +1198,7 @@
             "type": "object",
             "properties": {
                 "bill_data": {
-                    "description": "has many BillData",
+                    "description": "has one BillData",
                     "allOf": [
                         {
                             "$ref": "#/definitions/models.BillData"
@@ -1159,6 +1210,20 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.BillItem"
+                    }
+                },
+                "bill_member": {
+                    "description": "has many BillMember",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.BillMember"
+                    }
+                },
+                "bill_member_item": {
+                    "description": "has many BillMemberItems",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.BillMemberItem"
                     }
                 },
                 "bill_owner": {
@@ -1309,14 +1374,37 @@
                 "price_owe": {
                     "type": "number"
                 },
-                "profile_picture": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "models.BillMemberItem": {
+            "type": "object",
+            "properties": {
+                "bill": {
+                    "$ref": "#/definitions/models.Bill"
+                },
+                "bill_id": {
+                    "type": "string"
+                },
+                "bill_item": {
+                    "$ref": "#/definitions/models.BillItem"
+                },
+                "bill_item_id": {
+                    "type": "integer"
+                },
+                "bill_member": {
+                    "$ref": "#/definitions/models.BillMember"
+                },
+                "bill_member_id": {
+                    "type": "integer"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "qty": {
+                    "type": "integer"
                 }
             }
         },

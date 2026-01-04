@@ -14,6 +14,7 @@ type Config struct {
 	SupabaseBucket     string `mapstructure:"SUPABASE_BUCKET"`
 	SupbaseFolder      string `mapstructure:"SUPABASE_FOLDER"`
 	GinMode            string `mapstructure:"GIN_MODE"`
+	GeminiApiKey       string `mapstructure:"GEMINI_API_KEY"`
 }
 
 var ConfigSetting = &Config{}

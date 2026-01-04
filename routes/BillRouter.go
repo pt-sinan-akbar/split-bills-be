@@ -19,6 +19,7 @@ func (brc *BillRouterController) BillRouter(rg *gin.RouterGroup) {
 		internalGroup.GET("/", brc.billController.GetAll)
 		internalGroup.POST("/", brc.billController.CreateAsync)
 		internalGroup.POST("/upload", brc.billController.UploadImage)
+		internalGroup.POST("/extract-bill-data", brc.billController.ExtractBillData)
 		existingBillGroup := internalGroup.Group("/:id")
 		{
 			existingBillGroup.GET("", brc.billController.GetByID)
