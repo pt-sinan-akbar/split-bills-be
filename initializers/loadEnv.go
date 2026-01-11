@@ -1,6 +1,11 @@
 package initializers
 
-import "github.com/spf13/viper"
+import (
+	"errors"
+	"github.com/spf13/viper"
+	"log"
+	"reflect"
+)
 
 type Config struct {
 	DBHost             string `mapstructure:"POSTGRES_HOST"`
@@ -27,12 +32,29 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.AutomaticEnv()
 	viper.SetDefault("GIN_MODE", "debug")
 
-	err = viper.ReadInConfig()
-	if err != nil {
-		return
+	if err = viper.ReadInConfig(); err != nil {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if errors.As(err, &configFileNotFoundError) {
+			log.Println("? No env file found. Using environment variables.")
+			config = parseConfigFromEnv(config)
+		}
 	}
 
 	err = viper.Unmarshal(&config)
 	ConfigSetting = &config
 	return
+}
+
+func parseConfigFromEnv(config Config) Config {
+	r := reflect.TypeOf(config)
+	for r.Kind() == reflect.Ptr {
+		r = r.Elem()
+	}
+	for i := 0; i < r.NumField(); i++ {
+		env := r.Field(i).Tag.Get("mapstructure")
+		if err := viper.BindEnv(env); err != nil {
+			log.Fatal("? Failed to bind env variable:", err)
+		}
+	}
+	return config
 }
