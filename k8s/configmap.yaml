@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: split-bill-be-config
+data:
+  POSTGRES_HOST: "postgres-postgis-service"
+  POSTGRES_PORT: "5432"
+  PORT: "8080"
+  GIN_MODE: "release"
